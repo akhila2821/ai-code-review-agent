@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Customer Churn Prediction Agent | AI Agents Hub</title>
+  <meta name="description" content="AI-powered customer churn prediction with risk segmentation, feature importance analysis, and retention recommendations." />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .customer-table-wrap { overflow-x: auto; }
+    .predict-form { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; }
+    .form-group input, .form-group select { background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); padding: 0.6rem 0.85rem; color: var(--text-primary); font-size: 0.875rem; outline: none; transition: var(--transition); }
+    .form-group input:focus, .form-group select:focus { border-color: var(--emerald); box-shadow: 0 0 0 3px rgba(16,185,129,0.15); }
+    .form-group select option { background: #0a0f1e; }
+    .churn-gauge { text-align: center; padding: 1.5rem; }
+    .gauge-value { font-family: var(--font-primary); font-size: 4rem; font-weight: 900; line-height: 1; }
+    .gauge-label { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
+    .factor-bar { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.875rem; }
+    .factor-name { font-size: 0.82rem; color: var(--text-secondary); width: 160px; flex-shrink: 0; }
+    .factor-track { flex: 1; height: 8px; background: rgba(255,255,255,0.06); border-radius: 99px; overflow: hidden; }
+    .factor-fill { height: 100%; border-radius: 99px; transition: width 1.2s ease; }
+    .factor-pct { font-size: 0.78rem; font-weight: 700; width: 38px; text-align: right; }
+    @media(max-width:900px){ .predict-form{grid-template-columns:1fr 1fr;} }
+    @media(max-width:600px){ .predict-form{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+  <div class="bg-gradient-mesh"></div>
+  <nav class="navbar" id="navbar">
+    <a href="index.html" class="nav-brand"><div class="nav-brand-icon">🤖</div><span>AI Agents Hub</span></a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="code-review.html">🔍 Code Review</a></li>
+      <li><a href="learning.html">📚 Learning</a></li>
+      <li><a href="churn.html" class="active">📊 Churn</a></li>
+      <li><a href="demand.html">📈 Demand</a></li>
+      <li><a href="traffic.html">🚦 Traffic</a></li>
+      <li><a href="index.html" class="nav-cta btn">← Home</a></li>
+    </ul>
+    <div class="hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')"><span></span><span></span><span></span></div>
+  </nav>
+
+  <main class="main-content">
+    <!-- HERO -->
+    <section class="agent-hero">
+      <div class="agent-hero-breadcrumb">
+        <a href="index.html">Home</a> <span>›</span> <span style="color:var(--emerald-light)">Churn Prediction Agent</span>
+      </div>
+      <div class="agent-hero-content">
+        <div class="agent-hero-text">
+          <div class="agent-hero-badge" style="background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);color:var(--emerald-light);">📊 Business Intelligence · Medium Complexity</div>
+          <h1 class="agent-hero-title">Customer Churn<br/><span class="text-gradient-emerald">Prediction Agent</span></h1>
+          <p class="agent-hero-desc">Predict which customers are at risk of leaving before it's too late. Our AI analyzes behavioral signals, usage patterns, and engagement data to provide churn probability scores and targeted retention strategies.</p>
+          <div class="agent-hero-actions">
+            <a href="#demo" class="btn btn-primary" style="background:linear-gradient(135deg,var(--emerald),var(--cyan));">🔮 Predict Churn Risk</a>
+            <a href="#overview" class="btn btn-secondary">📊 View Dashboard</a>
+          </div>
+        </div>
+        <div class="agent-hero-visual">
+          <div class="glass-card" style="padding:1.5rem;">
+            <div style="font-weight:700;font-family:var(--font-primary);margin-bottom:1rem;">📊 Risk Distribution</div>
+            <canvas id="heroDonut" height="200"></canvas>
+            <div class="chart-legend" style="justify-content:center;margin-top:1rem;">
+              <div class="legend-item"><div class="legend-dot" style="background:var(--rose)"></div>High Risk (23%)</div>
+              <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>Medium (35%)</div>
+              <div class="legend-item"><div class="legend-dot" style="background:var(--emerald)"></div>Low Risk (42%)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- OVERVIEW DASHBOARD -->
+    <section style="padding:0 2rem 3rem;max-width:1200px;margin:0 auto;" id="overview">
+      <div class="metrics-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:2rem;">
+        <div class="glass-card metric-card">
+          <div class="metric-value text-rose" id="m1">0</div>
+          <div class="metric-label">At-Risk Customers</div>
+          <div class="metric-trend trend-up">↑ +12% this month</div>
+        </div>
+        <div class="glass-card metric-card">
+          <div class="metric-value text-amber" id="m2">0%</div>
+          <div class="metric-label">Avg Churn Probability</div>
+          <div class="metric-trend trend-down">↓ -3% vs last month</div>
+        </div>
+        <div class="glass-card metric-card">
+          <div class="metric-value text-emerald" id="m3">$0</div>
+          <div class="metric-label">Revenue at Risk</div>
+          <div class="metric-trend trend-up">↑ High priority</div>
+        </div>
+        <div class="glass-card metric-card">
+          <div class="metric-value text-cyan" id="m4">0%</div>
+          <div class="metric-label">Model Accuracy</div>
+          <div class="metric-trend" style="color:var(--text-muted);">XGBoost + LightGBM</div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="gap:1.5rem;">
+        <div class="glass-card" style="padding:1.5rem;">
+          <div style="font-weight:700;font-family:var(--font-primary);margin-bottom:1rem;">📉 Monthly Churn Rate Trend</div>
+          <canvas id="churnTrend" height="200"></canvas>
+        </div>
+        <div class="glass-card" style="padding:1.5rem;">
+          <div style="font-weight:700;font-family:var(--font-primary);margin-bottom:1.25rem;">🔑 Top Churn Factors (Feature Importance)</div>
+          <div id="featureImportance"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LIVE DEMO -->
+    <section class="demo-section" id="demo">
+      <div class="glass-card demo-panel">
+        <div class="demo-header">
+          <div class="demo-title">🔮 Individual Customer Churn Predictor</div>
+          <div class="demo-controls">
+            <button class="btn btn-sm btn-secondary" onclick="loadPreset('high')">⚠️ High Risk Profile</button>
+            <button class="btn btn-sm btn-secondary" onclick="loadPreset('low')">✅ Low Risk Profile</button>
+            <button class="btn btn-primary" onclick="predictChurn()">🔮 Predict Churn Risk</button>
+          </div>
+        </div>
+
+        <div class="grid-2" style="gap:2rem;align-items:start;">
+          <div>
+            <div style="font-size:0.8rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.75rem;">Customer Features</div>
+            <div class="predict-form">
+              <div class="form-group">
+                <label>Tenure (months)</label>
+                <input type="number" id="tenure" value="3" min="1" max="120" />
+              </div>
+              <div class="form-group">
+                <label>Monthly Charges ($)</label>
+                <input type="number" id="monthlyCharges" value="85.50" min="0" />
+              </div>
+              <div class="form-group">
+                <label>Total Charges ($)</label>
+                <input type="number" id="totalCharges" value="245.50" min="0" />
+              </div>
+              <div class="form-group">
+                <label>Contract Type</label>
+                <select id="contract">
+                  <option value="monthly" selected>Month-to-Month</option>
+                  <option value="1year">One Year</option>
+                  <option value="2year">Two Years</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Support Tickets</label>
+                <input type="number" id="tickets" value="6" min="0" />
+              </div>
+              <div class="form-group">
+                <label>Last Login (days ago)</label>
+                <input type="number" id="lastLogin" value="18" min="0" />
+              </div>
+              <div class="form-group">
+                <label>Payment Method</label>
+                <select id="payment">
+                  <option value="electronic" selected>Electronic Check</option>
+                  <option value="credit">Credit Card</option>
+                  <option value="bank">Bank Transfer</option>
+                  <option value="mailed">Mailed Check</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Paperless Billing</label>
+                <select id="paperless">
+                  <option value="yes">Yes</option>
+                  <option value="no" selected>No</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Internet Service</label>
+                <select id="internet">
+                  <option value="fiber" selected>Fiber Optic</option>
+                  <option value="dsl">DSL</option>
+                  <option value="none">None</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div id="churnResult">
+            <div style="text-align:center;padding:3rem 1rem;color:var(--text-muted);">
+              <div style="font-size:3rem;margin-bottom:0.75rem;">🔮</div>
+              <div style="font-weight:600;">Fill in customer data and predict</div>
+              <div style="font-size:0.82rem;margin-top:0.5rem;">or load a preset profile</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HIGH RISK CUSTOMERS TABLE -->
+    <section style="padding:0 2rem 6rem;max-width:1200px;margin:0 auto;">
+      <div class="section-header" style="margin-bottom:1.5rem;">
+        <h2 class="section-title" style="font-size:1.75rem;">🚨 High-Risk Customer List</h2>
+      </div>
+      <div class="glass-card customer-table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Customer ID</th>
+              <th>Tenure</th>
+              <th>Monthly Charge</th>
+              <th>Support Tickets</th>
+              <th>Churn Probability</th>
+              <th>Risk Level</th>
+              <th>Recommended Action</th>
+            </tr>
+          </thead>
+          <tbody id="riskTable"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div><div class="footer-brand"><div class="nav-brand-icon">🤖</div> AI Agents Hub</div><p class="footer-tagline">Customer Churn Prediction Agent</p></div>
+      <div class="footer-links"><a href="learning.html">← Learning</a><a href="demand.html">Next: Demand →</a></div>
+    </div>
+  </footer>
+
+  <script>
+    window.addEventListener('scroll', () => document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20));
+
+    // Animate metrics
+    function animateVal(id, target, prefix='', suffix='') {
+      const el = document.getElementById(id);
+      let cur = 0;
+      const step = target / 60;
+      const t = setInterval(() => {
+        cur = Math.min(cur + step, target);
+        el.textContent = prefix + (suffix === '%' ? cur.toFixed(1) : Math.floor(cur).toLocaleString()) + suffix;
+        if (cur >= target) clearInterval(t);
+      }, 16);
+    }
+    setTimeout(() => {
+      animateVal('m1', 1247, '', '');
+      animateVal('m2', 34.2, '', '%');
+      animateVal('m3', 128400, '$', '');
+      animateVal('m4', 93.7, '', '%');
+    }, 500);
+
+    // Hero donut
+    new Chart(document.getElementById('heroDonut'), {
+      type: 'doughnut',
+      data: {
+        labels: ['High Risk', 'Medium Risk', 'Low Risk'],
+        datasets: [{ data: [23, 35, 42], backgroundColor: ['rgba(244,63,94,0.8)', 'rgba(245,158,11,0.8)', 'rgba(16,185,129,0.8)'], borderColor: 'rgba(5,8,20,1)', borderWidth: 3, hoverOffset: 6 }]
+      },
+      options: { responsive: true, cutout: '65%', plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed}%` } } } }
+    });
+
+    // Churn trend chart
+    new Chart(document.getElementById('churnTrend'), {
+      type: 'bar',
+      data: {
+        labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+        datasets: [{
+          label: 'Churned', data: [4.2,3.8,5.1,4.7,6.2,5.5,4.9,6.8,7.1,5.4,4.8,3.9],
+          backgroundColor: 'rgba(244,63,94,0.6)', borderRadius: 4
+        }, {
+          label: 'Retained (with AI)', data: [null,null,null,null,null,null,null,6.1,5.8,4.2,3.9,3.1],
+          backgroundColor: 'rgba(16,185,129,0.6)', borderRadius: 4
+        }]
+      },
+      options: { responsive: true, scales: { x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b' } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b', callback: v => v + '%' } } }, plugins: { legend: { labels: { color: '#94a3b8', boxWidth: 12, font: { size: 11 } } } } }
+    });
+
+    // Feature importance
+    const features = [
+      { name: 'Contract Type', pct: 92, color: 'var(--rose)' },
+      { name: 'Tenure (months)', pct: 85, color: 'var(--amber)' },
+      { name: 'Monthly Charges', pct: 78, color: 'var(--purple)' },
+      { name: 'Support Tickets', pct: 71, color: 'var(--cyan)' },
+      { name: 'Last Login Days', pct: 65, color: 'var(--emerald)' },
+      { name: 'Payment Method', pct: 54, color: 'var(--rose)' },
+      { name: 'Internet Service', pct: 48, color: 'var(--amber)' },
+    ];
+    const fi = document.getElementById('featureImportance');
+    features.forEach(f => {
+      fi.innerHTML += `
+        <div class="factor-bar">
+          <div class="factor-name">${f.name}</div>
+          <div class="factor-track"><div class="factor-fill" style="width:${f.pct}%;background:${f.color};"></div></div>
+          <div class="factor-pct" style="color:${f.color};">${f.pct}%</div>
+        </div>`;
+    });
+
+    // Risk table
+    const customers = [
+      { id: 'CUS-4821', tenure: 2, charge: 89.95, tickets: 8, prob: 91, risk: 'high', action: 'Offer 30% discount + priority support' },
+      { id: 'CUS-2194', tenure: 4, charge: 75.50, tickets: 5, prob: 83, risk: 'high', action: 'Upgrade plan with added features free for 3 months' },
+      { id: 'CUS-7730', tenure: 6, charge: 102.00, tickets: 7, prob: 79, risk: 'high', action: 'Schedule customer success call this week' },
+      { id: 'CUS-0912', tenure: 8, charge: 64.25, tickets: 3, prob: 68, risk: 'medium', action: 'Send loyalty reward email + feature tutorial' },
+      { id: 'CUS-5543', tenure: 11, charge: 55.00, tickets: 2, prob: 61, risk: 'medium', action: 'Personalized onboarding review session' },
+      { id: 'CUS-3378', tenure: 14, charge: 48.75, tickets: 1, prob: 42, risk: 'medium', action: 'NPS survey + in-app engagement nudge' },
+    ];
+    const riskColors = { high: 'var(--rose-light)', medium: 'var(--amber-light)', low: 'var(--emerald-light)' };
+    const tbody = document.getElementById('riskTable');
+    customers.forEach(c => {
+      tbody.innerHTML += `
+        <tr>
+          <td style="font-family:var(--font-mono);font-size:0.8rem;color:var(--text-primary);">${c.id}</td>
+          <td>${c.tenure} mo</td>
+          <td>$${c.charge}</td>
+          <td style="color:${c.tickets > 5 ? 'var(--rose-light)' : 'var(--text-secondary)'};">${c.tickets}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="flex:1;height:6px;background:rgba(255,255,255,0.06);border-radius:99px;overflow:hidden;width:80px;">
+                <div style="height:100%;width:${c.prob}%;background:${c.prob > 75 ? 'var(--rose)' : c.prob > 50 ? 'var(--amber)' : 'var(--emerald)'};border-radius:99px;"></div>
+              </div>
+              <span style="font-weight:700;color:${riskColors[c.risk]};">${c.prob}%</span>
+            </div>
+          </td>
+          <td><span class="risk-badge risk-${c.risk}">${c.risk === 'high' ? '🔴' : c.risk === 'medium' ? '🟠' : '🟢'} ${c.risk}</span></td>
+          <td style="font-size:0.78rem;">${c.action}</td>
+        </tr>`;
+    });
+
+    // Presets
+    const presets = {
+      high: { tenure: 2, monthlyCharges: 89.95, totalCharges: 179.90, contract: 'monthly', tickets: 8, lastLogin: 22, payment: 'electronic', paperless: 'no', internet: 'fiber' },
+      low: { tenure: 36, monthlyCharges: 45.00, totalCharges: 1620, contract: '2year', tickets: 0, lastLogin: 1, payment: 'credit', paperless: 'yes', internet: 'dsl' }
+    };
+    function loadPreset(type) {
+      const p = presets[type];
+      Object.keys(p).forEach(k => {
+        const el = document.getElementById(k);
+        if (el) el.value = p[k];
+      });
+    }
+
+    function predictChurn() {
+      const tenure = parseInt(document.getElementById('tenure').value);
+      const monthly = parseFloat(document.getElementById('monthlyCharges').value);
+      const tickets = parseInt(document.getElementById('tickets').value);
+      const lastLogin = parseInt(document.getElementById('lastLogin').value);
+      const contract = document.getElementById('contract').value;
+
+      let score = 50;
+      if (tenure < 6) score += 25; else if (tenure > 24) score -= 20;
+      if (monthly > 80) score += 10; else if (monthly < 50) score -= 10;
+      if (tickets > 5) score += 20; else if (tickets === 0) score -= 15;
+      if (lastLogin > 14) score += 15; else if (lastLogin < 3) score -= 10;
+      if (contract === 'monthly') score += 20; else if (contract === '2year') score -= 25;
+      score = Math.max(5, Math.min(97, score));
+
+      const risk = score > 70 ? 'HIGH' : score > 45 ? 'MEDIUM' : 'LOW';
+      const riskColor = score > 70 ? 'var(--rose)' : score > 45 ? 'var(--amber)' : 'var(--emerald)';
+      const riskBg = score > 70 ? 'rgba(244,63,94,0.1)' : score > 45 ? 'rgba(245,158,11,0.1)' : 'rgba(16,185,129,0.1)';
+
+      const recommendations = score > 70 ? [
+        '🎁 Offer immediate 30–40% discount on next 3 months',
+        '📞 Schedule priority customer success call within 24 hrs',
+        '🔧 Assign dedicated support agent for all future tickets',
+        '🆙 Free plan upgrade for 3 months to demonstrate value'
+      ] : score > 45 ? [
+        '📧 Send personalized engagement email with tips',
+        '🎓 Invite to exclusive webinar / training session',
+        '💰 Offer loyalty reward: 1 month free on renewal',
+        '📊 Share personalized usage report & ROI summary'
+      ] : [
+        '⭐ Enroll in loyalty / ambassador program',
+        '📣 Ask for testimonial or case study participation',
+        '🔔 Keep engaged with newsletter & feature updates',
+        '🤝 Offer referral program incentives'
+      ];
+
+      document.getElementById('churnResult').innerHTML = `
+        <div style="text-align:center;padding:1.5rem;background:${riskBg};border:1px solid ${riskColor}40;border-radius:var(--radius-md);margin-bottom:1.25rem;">
+          <div class="gauge-value" style="color:${riskColor};">${score}%</div>
+          <div style="font-family:var(--font-primary);font-size:1.2rem;font-weight:700;margin:6px 0;">${risk} CHURN RISK</div>
+          <div class="gauge-label">Predicted churn probability</div>
+        </div>
+        <div style="font-size:0.82rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.75rem;">Key Risk Drivers</div>
+        <div class="factor-bar"><div class="factor-name">Contract Type</div><div class="factor-track"><div class="factor-fill" style="width:${contract==='monthly'?90:contract==='1year'?50:20}%;background:var(--rose);"></div></div><div class="factor-pct" style="color:var(--rose);">${contract==='monthly'?'High':'Low'}</div></div>
+        <div class="factor-bar"><div class="factor-name">Tenure</div><div class="factor-track"><div class="factor-fill" style="width:${Math.max(10,100-tenure*2)}%;background:var(--amber);"></div></div><div class="factor-pct" style="color:var(--amber);">${tenure < 6 ? 'High' : tenure > 24 ? 'Low' : 'Mid'}</div></div>
+        <div class="factor-bar"><div class="factor-name">Support Tickets</div><div class="factor-track"><div class="factor-fill" style="width:${Math.min(100,tickets*12)}%;background:var(--purple);"></div></div><div class="factor-pct" style="color:var(--purple-light);">${tickets}</div></div>
+        <div class="factor-bar"><div class="factor-name">Last Login</div><div class="factor-track"><div class="factor-fill" style="width:${Math.min(100,lastLogin*4)}%;background:var(--cyan);"></div></div><div class="factor-pct" style="color:var(--cyan-light);">${lastLogin}d</div></div>
+        <div style="font-size:0.82rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.07em;margin:1rem 0 0.75rem;">💼 Retention Recommendations</div>
+        ${recommendations.map(r => `<div style="padding:0.6rem 0.85rem;border-radius:var(--radius-sm);background:rgba(255,255,255,0.04);border:1px solid var(--border-glass);font-size:0.82rem;color:var(--text-secondary);margin-bottom:6px;">${r}</div>`).join('')}
+      `;
+    }
+  </script>
+</body>
+</html>

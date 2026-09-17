@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personalized Learning Recommendation Agent | AI Agents Hub</title>
+  <meta name="description" content="AI-powered learning path generator that creates personalized study plans based on student profiles, skill gaps, and learning speed." />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .profile-form { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; }
+    .form-group select, .form-group input { background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); padding: 0.65rem 0.9rem; color: var(--text-primary); font-family: var(--font-secondary); font-size: 0.875rem; outline: none; transition: var(--transition); }
+    .form-group select:focus, .form-group input:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(6,182,212,0.15); }
+    .form-group select option { background: #0a0f1e; }
+    .skill-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-top: 0.25rem; }
+    .skill-toggle { padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-glass); background: transparent; color: var(--text-secondary); font-size: 0.78rem; cursor: pointer; transition: var(--transition); text-align: center; }
+    .skill-toggle.active { background: rgba(6,182,212,0.15); border-color: var(--cyan); color: var(--cyan-light); }
+    .path-step { display: flex; gap: 1rem; padding: 1.1rem 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-glass); background: var(--bg-card); margin-bottom: 0.75rem; align-items: flex-start; position: relative; animation: slideIn 0.4s ease forwards; }
+    .path-step-num { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; flex-shrink: 0; }
+    .path-step-content { flex: 1; }
+    .path-step-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 3px; }
+    .path-step-meta { font-size: 0.78rem; color: var(--text-muted); display: flex; gap: 1rem; flex-wrap: wrap; }
+    .path-step-duration { display: inline-flex; align-items: center; gap: 4px; }
+    .step-status { font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-full); }
+    .step-status.completed { background:rgba(16,185,129,0.2);color:var(--emerald-light); }
+    .step-status.current { background:rgba(6,182,212,0.2);color:var(--cyan-light); }
+    .step-status.locked { background:rgba(255,255,255,0.06);color:var(--text-muted); }
+    .radar-wrap { position:relative; max-width:320px; margin:0 auto; }
+    @media(max-width:768px){ .profile-form{grid-template-columns:1fr;} .skill-grid{grid-template-columns:repeat(2,1fr);} }
+  </style>
+</head>
+<body>
+  <div class="bg-gradient-mesh"></div>
+  <nav class="navbar" id="navbar">
+    <a href="index.html" class="nav-brand"><div class="nav-brand-icon">🤖</div><span>AI Agents Hub</span></a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="code-review.html">🔍 Code Review</a></li>
+      <li><a href="learning.html" class="active">📚 Learning</a></li>
+      <li><a href="churn.html">📊 Churn</a></li>
+      <li><a href="demand.html">📈 Demand</a></li>
+      <li><a href="traffic.html">🚦 Traffic</a></li>
+      <li><a href="index.html" class="nav-cta btn">← Home</a></li>
+    </ul>
+    <div class="hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')"><span></span><span></span><span></span></div>
+  </nav>
+
+  <main class="main-content">
+    <section class="agent-hero">
+      <div class="agent-hero-breadcrumb">
+        <a href="index.html">Home</a> <span>›</span> <span style="color:var(--cyan-light)">Learning Agent</span>
+      </div>
+      <div class="agent-hero-content">
+        <div class="agent-hero-text">
+          <div class="agent-hero-badge" style="background:rgba(6,182,212,0.12);border:1px solid rgba(6,182,212,0.3);color:var(--cyan-light);">📚 EdTech & Personalization · Medium Complexity</div>
+          <h1 class="agent-hero-title">Personalized Learning<br/><span class="text-gradient-purple" style="background:linear-gradient(135deg,var(--cyan-light),var(--purple-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Recommendation Agent</span></h1>
+          <p class="agent-hero-desc">Create your student profile and our AI will generate a fully personalized learning path — adapting difficulty, pace, and resource recommendations to your unique strengths and gaps.</p>
+          <div class="agent-hero-actions">
+            <a href="#demo" class="btn btn-primary" style="background:linear-gradient(135deg,var(--cyan),var(--purple));">🎓 Build My Learning Path</a>
+            <a href="#features" class="btn btn-secondary">📋 Features</a>
+          </div>
+        </div>
+        <div class="agent-hero-visual">
+          <div class="glass-card" style="padding:1.5rem;">
+            <div style="font-family:var(--font-primary);font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:8px;">📊 Skill Overview</div>
+            <div class="radar-wrap"><canvas id="heroRadar"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="demo-section" id="demo">
+      <div class="glass-card demo-panel">
+        <div class="demo-header">
+          <div class="demo-title">🎓 Create Your Learning Profile</div>
+          <button class="btn btn-primary" onclick="generatePath()" id="genBtn">✨ Generate Learning Path</button>
+        </div>
+
+        <div class="grid-2" style="gap:2rem;align-items:start;">
+          <!-- PROFILE FORM -->
+          <div>
+            <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">👤 Student Profile</div>
+            <div class="profile-form" style="margin-bottom:1.25rem;">
+              <div class="form-group">
+                <label>Name</label>
+                <input type="text" id="studentName" placeholder="Alex Johnson" value="Alex Johnson" />
+              </div>
+              <div class="form-group">
+                <label>Learning Goal</label>
+                <select id="learningGoal">
+                  <option value="fullstack">Full Stack Development</option>
+                  <option value="datascience">Data Science & ML</option>
+                  <option value="cybersecurity">Cybersecurity</option>
+                  <option value="mobile">Mobile Development</option>
+                  <option value="devops">DevOps & Cloud</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Current Level</label>
+                <select id="currentLevel">
+                  <option value="beginner">Beginner</option>
+                  <option value="intermediate" selected>Intermediate</option>
+                  <option value="advanced">Advanced</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Hours/Week</label>
+                <select id="hoursPerWeek">
+                  <option value="5">5 hrs / week</option>
+                  <option value="10" selected>10 hrs / week</option>
+                  <option value="20">20 hrs / week</option>
+                  <option value="40">40 hrs / week (Full-time)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Learning Style</label>
+                <select id="learningStyle">
+                  <option value="visual">Visual (Videos & Diagrams)</option>
+                  <option value="reading" selected>Reading & Docs</option>
+                  <option value="hands-on">Hands-on Projects</option>
+                  <option value="mixed">Mixed Approach</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Target Timeline</label>
+                <select id="timeline">
+                  <option value="3">3 months</option>
+                  <option value="6" selected>6 months</option>
+                  <option value="12">12 months</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.6rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">✅ Skills You Already Know</div>
+            <div class="skill-grid" id="skillsGrid">
+              <button class="skill-toggle active" onclick="toggleSkill(this)">HTML/CSS</button>
+              <button class="skill-toggle active" onclick="toggleSkill(this)">JavaScript</button>
+              <button class="skill-toggle" onclick="toggleSkill(this)">React</button>
+              <button class="skill-toggle" onclick="toggleSkill(this)">Node.js</button>
+              <button class="skill-toggle active" onclick="toggleSkill(this)">Python</button>
+              <button class="skill-toggle" onclick="toggleSkill(this)">SQL</button>
+              <button class="skill-toggle" onclick="toggleSkill(this)">Git/GitHub</button>
+              <button class="skill-toggle" onclick="toggleSkill(this)">Docker</button>
+              <button class="skill-toggle" onclick="toggleSkill(this)">TypeScript</button>
+            </div>
+          </div>
+
+          <!-- RESULTS -->
+          <div id="pathResults">
+            <div style="text-align:center;padding:3rem 1rem;color:var(--text-muted);">
+              <div style="font-size:3rem;margin-bottom:0.75rem;">🗺️</div>
+              <div style="font-weight:600;">Your personalized path will appear here</div>
+              <div style="font-size:0.82rem;margin-top:0.5rem;">Fill in your profile and click Generate</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROGRESS TRACKING SECTION -->
+    <section style="padding:2rem 2rem 4rem;max-width:1200px;margin:0 auto;" id="features">
+      <div class="section-header">
+        <div class="section-badge" style="background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.3);color:var(--cyan-light);">✦ Sample Analytics</div>
+        <h2 class="section-title">Progress Tracking Dashboard</h2>
+      </div>
+      <div class="grid-2" style="gap:1.5rem;">
+        <div class="glass-card" style="padding:1.5rem;">
+          <div style="font-weight:700;margin-bottom:1.25rem;display:flex;align-items:center;gap:8px;">📈 Learning Progress Over Time</div>
+          <canvas id="progressChart" height="200"></canvas>
+        </div>
+        <div class="glass-card" style="padding:1.5rem;">
+          <div style="font-weight:700;margin-bottom:1.25rem;">🎯 Skill Gap Analysis</div>
+          <div id="skillGapBars"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div><div class="footer-brand"><div class="nav-brand-icon">🤖</div> AI Agents Hub</div><p class="footer-tagline">Personalized Learning Recommendation Agent</p></div>
+      <div class="footer-links"><a href="code-review.html">← Code Review</a><a href="churn.html">Next: Churn →</a></div>
+    </div>
+  </footer>
+
+  <script>
+    window.addEventListener('scroll', () => document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20));
+    function toggleSkill(el) { el.classList.toggle('active'); }
+
+    // Hero radar chart
+    new Chart(document.getElementById('heroRadar'), {
+      type: 'radar',
+      data: {
+        labels: ['Frontend', 'Backend', 'Databases', 'DevOps', 'Security', 'Algorithms'],
+        datasets: [{
+          label: 'Current', data: [75, 45, 40, 20, 30, 55],
+          backgroundColor: 'rgba(6,182,212,0.15)', borderColor: 'rgba(6,182,212,0.8)', pointBackgroundColor: '#06b6d4', borderWidth: 2
+        }, {
+          label: 'Target', data: [95, 85, 80, 70, 65, 80],
+          backgroundColor: 'rgba(139,92,246,0.08)', borderColor: 'rgba(139,92,246,0.5)', pointBackgroundColor: '#8b5cf6', borderWidth: 2, borderDash: [5,5]
+        }]
+      },
+      options: { responsive: true, scales: { r: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { display: false }, pointLabels: { color: '#94a3b8', font: { size: 11 } }, min: 0, max: 100 } }, plugins: { legend: { labels: { color: '#94a3b8', boxWidth: 12, font: { size: 11 } } } } }
+    });
+
+    // Progress chart
+    new Chart(document.getElementById('progressChart'), {
+      type: 'line',
+      data: {
+        labels: ['Week 1','Week 2','Week 3','Week 4','Week 5','Week 6','Week 7','Week 8'],
+        datasets: [{
+          label: 'Skill Score', data: [32, 41, 48, 56, 61, 70, 78, 85],
+          borderColor: 'rgba(6,182,212,1)', backgroundColor: 'rgba(6,182,212,0.1)', tension: 0.4, fill: true, pointBackgroundColor: '#06b6d4', pointRadius: 4
+        }, {
+          label: 'Target Pace', data: [35, 45, 52, 60, 67, 74, 81, 88],
+          borderColor: 'rgba(139,92,246,0.5)', backgroundColor: 'transparent', tension: 0.4, borderDash: [6,4], pointRadius: 0
+        }]
+      },
+      options: { responsive: true, scales: { x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b' } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b' }, min: 0, max: 100 } }, plugins: { legend: { labels: { color: '#94a3b8', boxWidth: 12, font: { size: 11 } } } } }
+    });
+
+    // Skill gap bars
+    const skillGaps = [
+      { skill: 'React / Next.js', current: 30, target: 90, color: '#06b6d4' },
+      { skill: 'Node.js & REST APIs', current: 45, target: 88, color: '#8b5cf6' },
+      { skill: 'PostgreSQL / MongoDB', current: 40, target: 85, color: '#10b981' },
+      { skill: 'Docker & Kubernetes', current: 15, target: 75, color: '#f59e0b' },
+      { skill: 'System Design', current: 25, target: 80, color: '#f43f5e' },
+    ];
+
+    const gapContainer = document.getElementById('skillGapBars');
+    skillGaps.forEach(g => {
+      const gap = g.target - g.current;
+      gapContainer.innerHTML += `
+        <div style="margin-bottom:1rem;">
+          <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:6px;">
+            <span style="color:var(--text-secondary);font-weight:500;">${g.skill}</span>
+            <span style="color:var(--text-muted);">${g.current}% → <span style="color:${g.color};font-weight:700;">${g.target}%</span></span>
+          </div>
+          <div style="position:relative;height:8px;background:rgba(255,255,255,0.06);border-radius:99px;overflow:hidden;">
+            <div style="position:absolute;left:0;top:0;height:100%;width:${g.current}%;background:rgba(255,255,255,0.15);border-radius:99px;"></div>
+            <div style="position:absolute;left:${g.current}%;top:0;height:100%;width:${gap}%;background:${g.color};border-radius:99px;opacity:0.8;"></div>
+          </div>
+          <div style="font-size:0.72rem;color:var(--text-muted);margin-top:4px;">Gap: ${gap}% remaining</div>
+        </div>
+      `;
+    });
+
+    const paths = {
+      fullstack: [
+        { title: 'Advanced JavaScript (ES2024)', type: 'Core', duration: '2 weeks', resources: 'MDN, javascript.info, FreeCodeCamp', status: 'completed', icon: '✅' },
+        { title: 'React 18 + Next.js 14', type: 'Framework', duration: '4 weeks', resources: 'Official Docs, Scrimba React Course', status: 'current', icon: '🎯' },
+        { title: 'TypeScript Fundamentals', type: 'Language', duration: '2 weeks', resources: 'TypeScript Handbook, Execute Program', status: 'locked', icon: '🔒' },
+        { title: 'Node.js + Express APIs', type: 'Backend', duration: '3 weeks', resources: 'NodeJS.org, The Odin Project', status: 'locked', icon: '🔒' },
+        { title: 'PostgreSQL & Prisma ORM', type: 'Database', duration: '2 weeks', resources: 'PostgreSQL Tutorial, Prisma Docs', status: 'locked', icon: '🔒' },
+        { title: 'Docker & Deployment (Vercel/AWS)', type: 'DevOps', duration: '2 weeks', resources: 'Docker Docs, Vercel Tutorials', status: 'locked', icon: '🔒' },
+        { title: 'Capstone: Full Stack SaaS App', type: 'Project', duration: '3 weeks', resources: 'Build with mentorship + code review', status: 'locked', icon: '🔒' }
+      ],
+      datascience: [
+        { title: 'Python for Data Science (NumPy, Pandas)', type: 'Core', duration: '3 weeks', resources: 'Kaggle Learn, DataCamp', status: 'completed', icon: '✅' },
+        { title: 'Data Visualization (Matplotlib, Seaborn, Plotly)', type: 'Visualization', duration: '2 weeks', resources: 'Matplotlib Docs, Plotly Tutorials', status: 'current', icon: '🎯' },
+        { title: 'Statistics & Probability', type: 'Math', duration: '2 weeks', resources: 'Khan Academy, StatQuest YouTube', status: 'locked', icon: '🔒' },
+        { title: 'Machine Learning with scikit-learn', type: 'ML', duration: '4 weeks', resources: 'scikit-learn Docs, Hands-On ML Book', status: 'locked', icon: '🔒' },
+        { title: 'Deep Learning with PyTorch', type: 'Deep Learning', duration: '4 weeks', resources: 'Fast.ai, PyTorch Tutorials', status: 'locked', icon: '🔒' },
+        { title: 'Capstone: ML Project End-to-End', type: 'Project', duration: '3 weeks', resources: 'Kaggle Competition + Portfolio', status: 'locked', icon: '🔒' }
+      ]
+    };
+
+    function generatePath() {
+      const btn = document.getElementById('genBtn');
+      btn.innerHTML = '<div class="loading-spinner" style="width:16px;height:16px;border-width:2px;display:inline-block;"></div> Generating...';
+      btn.disabled = true;
+
+      setTimeout(() => {
+        const name = document.getElementById('studentName').value || 'Student';
+        const goal = document.getElementById('learningGoal').value;
+        const level = document.getElementById('currentLevel').value;
+        const hours = document.getElementById('hoursPerWeek').value;
+        const timeline = document.getElementById('timeline').value;
+        const style = document.getElementById('learningStyle').value;
+
+        const knownSkills = [...document.querySelectorAll('.skill-toggle.active')].map(el => el.textContent);
+        const steps = paths[goal] || paths.fullstack;
+        const goalLabels = { fullstack: 'Full Stack Developer', datascience: 'Data Scientist', cybersecurity: 'Cybersecurity Engineer', mobile: 'Mobile Developer', devops: 'DevOps Engineer' };
+
+        const colors = ['var(--emerald)', 'var(--cyan)', 'var(--purple)', 'var(--amber)', 'var(--rose)', 'var(--cyan)', 'var(--purple)'];
+        const bgColors = ['rgba(16,185,129,0.2)', 'rgba(6,182,212,0.2)', 'rgba(139,92,246,0.2)', 'rgba(245,158,11,0.2)', 'rgba(244,63,94,0.2)', 'rgba(6,182,212,0.2)', 'rgba(139,92,246,0.2)'];
+
+        let html = `
+          <div style="margin-bottom:1.25rem;">
+            <div style="font-family:var(--font-primary);font-weight:800;font-size:1.15rem;margin-bottom:4px;">
+              🗺️ ${name}'s Learning Path
+            </div>
+            <div style="font-size:0.82rem;color:var(--text-muted);">
+              Goal: <span style="color:var(--cyan-light);font-weight:600;">${goalLabels[goal]}</span> ·
+              Level: <span style="color:var(--purple-light);font-weight:600;">${level}</span> ·
+              ${hours} hrs/wk · ${timeline} months · ${style} style
+            </div>
+          </div>
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem;">
+            ${knownSkills.map(s => `<span class="feature-chip" style="border-color:rgba(16,185,129,0.3);color:var(--emerald-light);">✓ ${s}</span>`).join('')}
+          </div>
+          <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:1rem;display:flex;align-items:center;gap:6px;">
+            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--emerald);"></span> Completed &nbsp;
+            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--cyan);"></span> In Progress &nbsp;
+            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.15);"></span> Upcoming
+          </div>
+        `;
+
+        steps.forEach((step, i) => {
+          html += `
+            <div class="path-step" style="animation-delay:${i*0.1}s;${step.status==='current'?'border-color:var(--cyan);background:rgba(6,182,212,0.05);':''}">
+              <div class="path-step-num" style="background:${bgColors[i]};color:${colors[i]};">${i+1}</div>
+              <div class="path-step-content">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                  <div class="path-step-title">${step.icon} ${step.title}</div>
+                  <span class="step-status ${step.status}">${step.status === 'current' ? '▶ Current' : step.status === 'completed' ? '✓ Done' : '🔒 Locked'}</span>
+                </div>
+                <div class="path-step-meta">
+                  <div class="path-step-duration">⏱️ ${step.duration}</div>
+                  <div>📚 ${step.resources}</div>
+                </div>
+              </div>
+              <div style="background:rgba(255,255,255,0.05);border-radius:var(--radius-full);padding:3px 10px;font-size:0.7rem;color:var(--text-muted);font-weight:600;white-space:nowrap;">${step.type}</div>
+            </div>
+          `;
+        });
+
+        const totalWeeks = steps.reduce((acc, s) => acc + parseInt(s.duration), 0);
+        html += `<div style="text-align:center;padding:1rem;font-size:0.8rem;color:var(--text-muted);border-top:1px solid var(--border-glass);margin-top:0.5rem;">
+          📅 Estimated completion: <span style="color:var(--cyan-light);font-weight:700;">${Math.ceil(totalWeeks / (parseInt(hours)/10))} weeks</span> at ${hours} hrs/week
+        </div>`;
+
+        document.getElementById('pathResults').innerHTML = html;
+        btn.innerHTML = '✨ Regenerate Path';
+        btn.disabled = false;
+      }, 1600);
+    }
+  </script>
+</body>
+</html>

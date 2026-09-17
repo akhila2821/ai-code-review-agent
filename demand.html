@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Intelligent Demand Forecasting Agent | AI Agents Hub</title>
+  <meta name="description" content="AI-powered demand forecasting using time-series analysis, trend detection, seasonality, and inventory recommendations." />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .product-selector { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .prod-btn { padding: 0.5rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-glass); background: transparent; color: var(--text-secondary); font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: var(--transition); }
+    .prod-btn.active { background: rgba(245,158,11,0.15); border-color: var(--amber); color: var(--amber-light); }
+    .anomaly-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: var(--radius-full); font-size: 0.7rem; font-weight: 700; background: rgba(244,63,94,0.15); color: var(--rose-light); border: 1px solid rgba(244,63,94,0.3); }
+    .season-card { padding: 1.25rem; text-align: center; }
+    .season-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+    .season-val { font-family: var(--font-primary); font-size: 1.6rem; font-weight: 800; }
+    .season-label { font-size: 0.75rem; color: var(--text-muted); }
+    .inv-rec { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-glass); margin-bottom: 0.75rem; }
+    .inv-rec-name { font-weight: 600; font-size: 0.9rem; }
+    .inv-rec-units { font-family: var(--font-primary); font-size: 1.5rem; font-weight: 800; }
+    .inv-rec-action { font-size: 0.78rem; padding: 4px 12px; border-radius: var(--radius-full); font-weight: 700; }
+    .action-order { background: rgba(16,185,129,0.15); color: var(--emerald-light); }
+    .action-hold { background: rgba(6,182,212,0.15); color: var(--cyan-light); }
+    .action-reduce { background: rgba(244,63,94,0.15); color: var(--rose-light); }
+    @media(max-width:768px){ .grid-2{ grid-template-columns:1fr !important; } }
+  </style>
+</head>
+<body>
+  <div class="bg-gradient-mesh"></div>
+  <nav class="navbar" id="navbar">
+    <a href="index.html" class="nav-brand"><div class="nav-brand-icon">🤖</div><span>AI Agents Hub</span></a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="code-review.html">🔍 Code Review</a></li>
+      <li><a href="learning.html">📚 Learning</a></li>
+      <li><a href="churn.html">📊 Churn</a></li>
+      <li><a href="demand.html" class="active">📈 Demand</a></li>
+      <li><a href="traffic.html">🚦 Traffic</a></li>
+      <li><a href="index.html" class="nav-cta btn">← Home</a></li>
+    </ul>
+    <div class="hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')"><span></span><span></span><span></span></div>
+  </nav>
+
+  <main class="main-content">
+    <!-- HERO -->
+    <section class="agent-hero">
+      <div class="agent-hero-breadcrumb">
+        <a href="index.html">Home</a> <span>›</span> <span style="color:var(--amber-light)">Demand Forecasting Agent</span>
+      </div>
+      <div class="agent-hero-content">
+        <div class="agent-hero-text">
+          <div class="agent-hero-badge" style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);color:var(--amber-light);">📈 Supply Chain & Retail · Medium Complexity</div>
+          <h1 class="agent-hero-title">Intelligent Demand<br/><span style="background:linear-gradient(135deg,var(--amber-light),var(--rose-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Forecasting Agent</span></h1>
+          <p class="agent-hero-desc">Predict future product demand with precision using historical sales analysis, time-series modeling, seasonality detection, and anomaly handling — preventing stockouts and overstock situations.</p>
+          <div class="agent-hero-actions">
+            <a href="#demo" class="btn btn-primary" style="background:linear-gradient(135deg,var(--amber),var(--rose));">📈 View Forecast</a>
+            <a href="#inventory" class="btn btn-secondary">📦 Inventory Recs</a>
+          </div>
+        </div>
+        <div class="agent-hero-visual">
+          <div class="glass-card" style="padding:1.5rem;">
+            <div style="font-weight:700;font-family:var(--font-primary);margin-bottom:0.75rem;">⚡ Quick Stats</div>
+            <div class="metrics-grid" style="grid-template-columns:1fr 1fr;">
+              <div class="glass-card metric-card"><div class="metric-value text-amber" id="hs1">0</div><div class="metric-label">Products Tracked</div></div>
+              <div class="glass-card metric-card"><div class="metric-value text-emerald" id="hs2">0%</div><div class="metric-label">Forecast Accuracy</div></div>
+              <div class="glass-card metric-card"><div class="metric-value text-cyan" id="hs3">0</div><div class="metric-label">Anomalies Caught</div></div>
+              <div class="glass-card metric-card"><div class="metric-value text-rose" id="hs4">$0K</div><div class="metric-label">Savings Generated</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MAIN FORECAST DEMO -->
+    <section class="demo-section" id="demo">
+      <div class="glass-card demo-panel">
+        <div class="demo-header">
+          <div class="demo-title">📈 Sales Forecast & Trend Analysis</div>
+          <div class="demo-controls">
+            <select id="forecastHorizon" class="btn btn-sm btn-secondary" style="cursor:pointer;" onchange="updateChart()">
+              <option value="30">30-day forecast</option>
+              <option value="60" selected>60-day forecast</option>
+              <option value="90">90-day forecast</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="font-size:0.8rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.75rem;">Select Product Category:</div>
+        <div class="product-selector">
+          <button class="prod-btn active" onclick="selectProd(this,'electronics')">📱 Electronics</button>
+          <button class="prod-btn" onclick="selectProd(this,'clothing')">👕 Clothing</button>
+          <button class="prod-btn" onclick="selectProd(this,'grocery')">🛒 Grocery</button>
+          <button class="prod-btn" onclick="selectProd(this,'sports')">⚽ Sports</button>
+          <button class="prod-btn" onclick="selectProd(this,'books')">📚 Books</button>
+        </div>
+
+        <canvas id="forecastChart" height="120" style="margin-bottom:1.5rem;"></canvas>
+
+        <div class="grid-2" style="gap:1.5rem;">
+          <div>
+            <div style="font-size:0.85rem;font-weight:700;margin-bottom:0.75rem;display:flex;align-items:center;gap:8px;">📉 Trend & Seasonality Analysis</div>
+            <canvas id="trendChart" height="160"></canvas>
+          </div>
+          <div>
+            <div style="font-size:0.85rem;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:8px;">🌊 Seasonal Patterns</div>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0.75rem;">
+              <div class="glass-card season-card">
+                <div class="season-icon">🌸</div>
+                <div class="season-val text-emerald">+23%</div>
+                <div class="season-label">Spring Surge</div>
+              </div>
+              <div class="glass-card season-card">
+                <div class="season-icon">☀️</div>
+                <div class="season-val text-amber">+41%</div>
+                <div class="season-label">Summer Peak</div>
+              </div>
+              <div class="glass-card season-card">
+                <div class="season-icon">🍂</div>
+                <div class="season-val text-rose">-8%</div>
+                <div class="season-label">Fall Dip</div>
+              </div>
+              <div class="glass-card season-card">
+                <div class="season-icon">❄️</div>
+                <div class="season-val text-cyan">+67%</div>
+                <div class="season-label">Holiday Spike</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Anomalies -->
+        <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border-glass);">
+          <div style="font-size:0.85rem;font-weight:700;margin-bottom:0.75rem;display:flex;align-items:center;gap:8px;">🚨 Detected Anomalies</div>
+          <div style="display:flex;flex-direction:column;gap:0.5rem;">
+            <div style="display:flex;align-items:center;gap:1rem;padding:0.75rem 1rem;background:rgba(244,63,94,0.06);border:1px solid rgba(244,63,94,0.2);border-radius:var(--radius-md);">
+              <span class="anomaly-badge">🚨 Spike</span>
+              <span style="font-size:0.83rem;color:var(--text-secondary);">Nov 25 — Sales spike 340% above expected (Black Friday)</span>
+              <span style="margin-left:auto;font-size:0.78rem;color:var(--text-muted);">Handled ✓</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:1rem;padding:0.75rem 1rem;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);border-radius:var(--radius-md);">
+              <span class="anomaly-badge" style="background:rgba(245,158,11,0.15);color:var(--amber-light);border-color:rgba(245,158,11,0.3);">⚠️ Drop</span>
+              <span style="font-size:0.83rem;color:var(--text-secondary);">Jul 4 — Sales drop 55% (holiday weekend closure)</span>
+              <span style="margin-left:auto;font-size:0.78rem;color:var(--text-muted);">Excluded ✓</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:1rem;padding:0.75rem 1rem;background:rgba(139,92,246,0.06);border:1px solid rgba(139,92,246,0.2);border-radius:var(--radius-md);">
+              <span class="anomaly-badge" style="background:rgba(139,92,246,0.15);color:var(--purple-light);border-color:rgba(139,92,246,0.3);">🔮 Trend</span>
+              <span style="font-size:0.83rem;color:var(--text-secondary);">Q3 — Sustained 15% uptrend vs prior year — growth signal</span>
+              <span style="margin-left:auto;font-size:0.78rem;color:var(--emerald-light);">Incorporated ✓</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- INVENTORY RECS -->
+    <section style="padding:0 2rem 6rem;max-width:1200px;margin:0 auto;" id="inventory">
+      <div class="section-header" style="margin-bottom:1.5rem;">
+        <h2 class="section-title" style="font-size:1.75rem;">📦 Inventory Recommendations</h2>
+        <p class="section-subtitle" style="font-size:0.9rem;">AI-generated restocking plan based on 60-day forecast, current stock levels, and lead times.</p>
+      </div>
+      <div id="inventoryList"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div><div class="footer-brand"><div class="nav-brand-icon">🤖</div> AI Agents Hub</div><p class="footer-tagline">Intelligent Demand Forecasting Agent</p></div>
+      <div class="footer-links"><a href="churn.html">← Churn</a><a href="traffic.html">Next: Traffic →</a></div>
+    </div>
+  </footer>
+
+  <script>
+    window.addEventListener('scroll', () => document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20));
+
+    // Animate hero stats
+    function anim(id, to, pre='', suf='') {
+      const el = document.getElementById(id);
+      let c = 0; const step = to / 60;
+      const t = setInterval(() => {
+        c = Math.min(c + step, to);
+        el.textContent = pre + (suf==='%'?c.toFixed(1):Math.floor(c).toLocaleString()) + suf;
+        if (c >= to) clearInterval(t);
+      }, 16);
+    }
+    setTimeout(() => {
+      anim('hs1', 2840, '', ''); anim('hs2', 94.3, '', '%'); anim('hs3', 187, '', ''); anim('hs4', 2.4, '$', 'K');
+    }, 400);
+
+    // Product data
+    const prodData = {
+      electronics: { hist: [320,290,340,380,410,360,400,450,480,510,490,530], trend: [5,8,10,12,15,14,17,20,22,25,24,27], label: 'Electronics (units/week)' },
+      clothing:    { hist: [520,480,600,640,700,580,620,720,760,800,850,920], trend: [-2,1,3,5,8,6,10,12,15,18,20,23], label: 'Clothing (units/week)' },
+      grocery:     { hist: [1200,1150,1300,1250,1400,1350,1450,1500,1480,1520,1560,1600], trend: [2,2,3,3,4,4,5,5,5,6,6,7], label: 'Grocery (units/week)' },
+      sports:      { hist: [180,160,220,280,340,380,360,320,260,200,170,150], trend: [-5,-3,2,8,15,20,18,12,5,-2,-6,-8], label: 'Sports (units/week)' },
+      books:       { hist: [440,400,460,480,500,420,440,480,520,560,600,650], trend: [1,0,2,3,4,2,3,4,5,6,7,8], label: 'Books (units/week)' }
+    };
+
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const forecastMonths = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan+','Feb+','Mar+','Apr+','May+','Jun+'];
+    let currentProd = 'electronics';
+    let forecastChart, trendChart;
+
+    function getForecast(hist) {
+      const avg = hist.reduce((a,b)=>a+b,0)/hist.length;
+      const trend = (hist[hist.length-1] - hist[0]) / hist.length;
+      const fc = [];
+      for (let i = 1; i <= 6; i++) fc.push(Math.round(hist[hist.length-1] + trend*i + (Math.random()-0.4)*avg*0.08));
+      return fc;
+    }
+
+    function initCharts() {
+      const d = prodData[currentProd];
+      const fc = getForecast(d.hist);
+      const histNull = d.hist.map((_,i) => i < 11 ? null : d.hist[i]);
+
+      forecastChart = new Chart(document.getElementById('forecastChart'), {
+        type: 'line',
+        data: {
+          labels: forecastMonths,
+          datasets: [
+            { label: 'Historical Sales', data: [...d.hist, ...Array(6).fill(null)], borderColor: 'rgba(245,158,11,0.9)', backgroundColor: 'rgba(245,158,11,0.07)', tension: 0.4, fill: true, pointRadius: 3, pointBackgroundColor: 'var(--amber)' },
+            { label: 'AI Forecast', data: [...Array(11).fill(null), d.hist[11], ...fc], borderColor: 'rgba(244,63,94,0.9)', backgroundColor: 'rgba(244,63,94,0.07)', tension: 0.4, fill: true, borderDash: [7,4], pointRadius: 4, pointBackgroundColor: 'var(--rose)' },
+            { label: 'Upper Bound', data: [...Array(12).fill(null), ...fc.map(v => Math.round(v*1.08))], borderColor: 'rgba(244,63,94,0.25)', backgroundColor: 'transparent', tension: 0.4, borderDash: [3,3], pointRadius: 0 },
+            { label: 'Lower Bound', data: [...Array(12).fill(null), ...fc.map(v => Math.round(v*0.92))], borderColor: 'rgba(244,63,94,0.25)', backgroundColor: 'rgba(244,63,94,0.04)', tension: 0.4, borderDash: [3,3], fill: '-1', pointRadius: 0 }
+          ]
+        },
+        options: { responsive: true, interaction: { mode: 'index', intersect: false }, scales: { x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b' } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b' } } }, plugins: { legend: { labels: { color: '#94a3b8', boxWidth: 12, font: { size: 11 } } }, tooltip: { backgroundColor: 'rgba(5,8,20,0.9)', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1 } } }
+      });
+
+      trendChart = new Chart(document.getElementById('trendChart'), {
+        type: 'bar',
+        data: {
+          labels: months,
+          datasets: [{ label: 'Trend Component (%)', data: d.trend, backgroundColor: d.trend.map(v => v > 0 ? 'rgba(16,185,129,0.7)' : 'rgba(244,63,94,0.7)'), borderRadius: 4 }]
+        },
+        options: { responsive: true, scales: { x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b' } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b', callback: v => v+'%' } } }, plugins: { legend: { labels: { color: '#94a3b8', boxWidth: 12, font: { size: 11 } } } } }
+      });
+    }
+
+    function selectProd(btn, prod) {
+      document.querySelectorAll('.prod-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentProd = prod;
+      updateChart();
+    }
+
+    function updateChart() {
+      if (forecastChart) { forecastChart.destroy(); trendChart.destroy(); }
+      initCharts();
+    }
+
+    initCharts();
+
+    // Inventory
+    const invItems = [
+      { name: '📱 iPhone 15 Pro (128GB)', current: 48, reorder: 200, days: 14, action: 'order', color: 'var(--emerald)' },
+      { name: '💻 MacBook Air M3', current: 22, reorder: 80, days: 21, action: 'order', color: 'var(--emerald)' },
+      { name: '🎧 AirPods Pro (2nd gen)', current: 180, reorder: 0, days: 0, action: 'hold', color: 'var(--cyan)' },
+      { name: '📺 Samsung 55" QLED TV', current: 95, reorder: 30, days: 7, action: 'order', color: 'var(--emerald)' },
+      { name: '🖥️ Dell 27" Monitor', current: 340, reorder: 0, days: 0, action: 'reduce', color: 'var(--rose)' },
+      { name: '⌨️ Logitech MX Keys', current: 67, reorder: 120, days: 10, action: 'order', color: 'var(--emerald)' },
+    ];
+    const il = document.getElementById('inventoryList');
+    invItems.forEach(item => {
+      const actionLabel = item.action === 'order' ? '🟢 Restock Now' : item.action === 'hold' ? '🔵 Hold' : '🔴 Reduce';
+      il.innerHTML += `
+        <div class="inv-rec">
+          <div><div class="inv-rec-name">${item.name}</div><div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">Current stock: <span style="font-weight:600;color:var(--text-secondary);">${item.current} units</span>${item.reorder ? ` · Reorder: <span style="font-weight:600;color:${item.color};">${item.reorder} units</span>` : ''}</div></div>
+          <div style="display:flex;align-items:center;gap:1rem;">
+            ${item.days ? `<div style="text-align:center;"><div class="inv-rec-units" style="color:${item.color};">${item.days}d</div><div style="font-size:0.7rem;color:var(--text-muted);">Lead Time</div></div>` : ''}
+            <span class="inv-rec-action action-${item.action}">${actionLabel}</span>
+          </div>
+        </div>`;
+    });
+  </script>
+</body>
+</html>

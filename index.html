@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Agents Hub — Intelligent Solutions for Modern Challenges</title>
+  <meta name="description" content="Explore 5 cutting-edge AI agent solutions: Code Review, Personalized Learning, Churn Prediction, Demand Forecasting, and Traffic Congestion Prediction." />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ---- Landing-specific styles ---- */
+    .hero-floating-cards {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-top: 3rem;
+    }
+
+    .floating-agent-mini {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-full);
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      animation: fadeInUp 0.6s ease forwards;
+      opacity: 0;
+      backdrop-filter: blur(10px);
+    }
+
+    .floating-agent-mini:nth-child(1) { animation-delay: 0.5s; }
+    .floating-agent-mini:nth-child(2) { animation-delay: 0.65s; }
+    .floating-agent-mini:nth-child(3) { animation-delay: 0.8s; }
+    .floating-agent-mini:nth-child(4) { animation-delay: 0.95s; }
+    .floating-agent-mini:nth-child(5) { animation-delay: 1.1s; }
+
+    .floating-agent-mini .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* Marquee strip */
+    .marquee-section {
+      overflow: hidden;
+      padding: 2rem 0;
+      border-top: 1px solid var(--border-glass);
+      border-bottom: 1px solid var(--border-glass);
+      background: rgba(255,255,255,0.01);
+    }
+
+    .marquee-track {
+      display: flex;
+      gap: 3rem;
+      animation: marquee 25s linear infinite;
+      width: max-content;
+    }
+
+    .marquee-track:hover {
+      animation-play-state: paused;
+    }
+
+    .marquee-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      white-space: nowrap;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .marquee-item span {
+      color: var(--text-secondary);
+    }
+
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    /* CTA section */
+    .cta-section {
+      padding: 8rem 2rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-glow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(ellipse, rgba(139,92,246,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .cta-inner {
+      position: relative;
+      z-index: 1;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .cta-title {
+      font-family: var(--font-primary);
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      margin-bottom: 1.25rem;
+      line-height: 1.15;
+    }
+
+    .cta-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      margin-bottom: 2.5rem;
+    }
+
+    /* Scroll indicator */
+    .scroll-indicator {
+      position: absolute;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      animation: float 2.5s ease-in-out infinite;
+    }
+
+    .scroll-indicator svg {
+      opacity: 0.5;
+    }
+
+    /* Cards reveal on scroll */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+    .reveal-delay-5 { transition-delay: 0.5s; }
+  </style>
+</head>
+<body>
+  <div class="bg-gradient-mesh"></div>
+  <canvas id="particles-canvas"></canvas>
+
+  <!-- NAVIGATION -->
+  <nav class="navbar" id="navbar">
+    <a href="index.html" class="nav-brand">
+      <div class="nav-brand-icon">🤖</div>
+      <span>AI Agents Hub</span>
+    </a>
+
+    <ul class="nav-links" id="navLinks">
+      <li><a href="code-review.html">🔍 Code Review</a></li>
+      <li><a href="learning.html">📚 Learning</a></li>
+      <li><a href="churn.html">📊 Churn</a></li>
+      <li><a href="demand.html">📈 Demand</a></li>
+      <li><a href="traffic.html">🚦 Traffic</a></li>
+      <li><a href="#agents" class="nav-cta btn">Explore All</a></li>
+    </ul>
+
+    <div class="hamburger" id="hamburger" onclick="toggleNav()">
+      <span></span><span></span><span></span>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-badge">
+        <span class="hero-badge-dot"></span>
+        5 AI-Powered Solutions · Production Ready
+      </div>
+
+      <h1 class="hero-title">
+        Next-Generation<br/>
+        <span class="gradient-text">AI Agent Solutions</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        Intelligent, autonomous systems designed to solve real-world problems — from code vulnerability detection to traffic congestion prediction.
+      </p>
+
+      <div class="hero-actions">
+        <a href="#agents" class="btn btn-primary btn-lg">
+          🚀 Explore Agents
+        </a>
+        <a href="#features" class="btn btn-secondary btn-lg">
+          ✦ Learn More
+        </a>
+      </div>
+
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-value" id="stat1">5</div>
+          <div class="hero-stat-label">AI Agents</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value" id="stat2">35+</div>
+          <div class="hero-stat-label">Features</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-value" id="stat3">98%</div>
+          <div class="hero-stat-label">Accuracy</div>
+        </div>
+      </div>
+
+      <div class="hero-floating-cards">
+        <div class="floating-agent-mini">
+          <div class="dot" style="background:var(--purple)"></div> Code Review Agent
+        </div>
+        <div class="floating-agent-mini">
+          <div class="dot" style="background:var(--cyan)"></div> Learning Agent
+        </div>
+        <div class="floating-agent-mini">
+          <div class="dot" style="background:var(--emerald)"></div> Churn Prediction
+        </div>
+        <div class="floating-agent-mini">
+          <div class="dot" style="background:var(--amber)"></div> Demand Forecasting
+        </div>
+        <div class="floating-agent-mini">
+          <div class="dot" style="background:var(--rose)"></div> Traffic Prediction
+        </div>
+      </div>
+
+      <div class="scroll-indicator">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M10 4v12M4 10l6 6 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Scroll to explore
+      </div>
+    </section>
+
+    <!-- MARQUEE -->
+    <div class="marquee-section">
+      <div class="marquee-track">
+        <div class="marquee-item">🔐 <span>Security Analysis</span></div>
+        <div class="marquee-item">🧠 <span>Neural Networks</span></div>
+        <div class="marquee-item">📊 <span>Predictive Analytics</span></div>
+        <div class="marquee-item">🎯 <span>Personalization</span></div>
+        <div class="marquee-item">⚡ <span>Real-time Processing</span></div>
+        <div class="marquee-item">🔍 <span>Anomaly Detection</span></div>
+        <div class="marquee-item">📈 <span>Time-Series Forecasting</span></div>
+        <div class="marquee-item">🚦 <span>Traffic Intelligence</span></div>
+        <div class="marquee-item">🎓 <span>Adaptive Learning</span></div>
+        <div class="marquee-item">💡 <span>Actionable Insights</span></div>
+        <!-- duplicate for seamless loop -->
+        <div class="marquee-item">🔐 <span>Security Analysis</span></div>
+        <div class="marquee-item">🧠 <span>Neural Networks</span></div>
+        <div class="marquee-item">📊 <span>Predictive Analytics</span></div>
+        <div class="marquee-item">🎯 <span>Personalization</span></div>
+        <div class="marquee-item">⚡ <span>Real-time Processing</span></div>
+        <div class="marquee-item">🔍 <span>Anomaly Detection</span></div>
+        <div class="marquee-item">📈 <span>Time-Series Forecasting</span></div>
+        <div class="marquee-item">🚦 <span>Traffic Intelligence</span></div>
+        <div class="marquee-item">🎓 <span>Adaptive Learning</span></div>
+        <div class="marquee-item">💡 <span>Actionable Insights</span></div>
+      </div>
+    </div>
+
+    <!-- AGENTS GRID -->
+    <section class="agents-section" id="agents">
+      <div class="section-header">
+        <div class="section-badge" style="background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);color:var(--purple-light);">
+          🤖 AI Agents
+        </div>
+        <h2 class="section-title">Five Intelligent Solutions</h2>
+        <p class="section-subtitle">Each agent is purpose-built with advanced ML capabilities, real-time analysis, and actionable recommendations.</p>
+      </div>
+
+      <div class="agents-grid">
+
+        <!-- Agent 1: Code Review -->
+        <a href="code-review.html" class="glass-card agent-card theme-purple reveal reveal-delay-1">
+          <div class="agent-card-header">
+            <div class="agent-icon">🔍</div>
+            <div class="agent-card-meta">
+              <div class="agent-card-tag">Security & Quality</div>
+              <div class="agent-card-title">AI Code Review & Vulnerability Detection</div>
+            </div>
+          </div>
+          <p class="agent-card-desc">
+            Analyzes source code in real-time to identify bugs, security vulnerabilities, and code smells with severity classification and detailed improvement suggestions.
+          </p>
+          <div class="agent-card-features">
+            <span class="feature-chip">🐛 Bug Detection</span>
+            <span class="feature-chip">🔐 Security Scan</span>
+            <span class="feature-chip">📋 Code Smells</span>
+            <span class="feature-chip">⚠️ Severity Rating</span>
+            <span class="feature-chip">💡 Suggestions</span>
+          </div>
+          <div class="agent-card-footer">
+            <div class="agent-complexity">
+              <span>Complexity</span>
+              <div class="complexity-dots">
+                <div class="complexity-dot active"></div>
+                <div class="complexity-dot active"></div>
+                <div class="complexity-dot active"></div>
+                <div class="complexity-dot"></div>
+              </div>
+              Medium
+            </div>
+            <div class="agent-card-arrow">→</div>
+          </div>
+        </a>
+
+        <!-- Agent 2: Learning -->
+        <a href="learning.html" class="glass-card agent-card theme-cyan reveal reveal-delay-2">
+          <div class="agent-card-header">
+            <div class="agent-icon">📚</div>
+            <div class="agent-card-meta">
+              <div class="agent-card-tag">EdTech & Personalization</div>
+              <div class="agent-card-title">Personalized Learning Recommendation Agent</div>
+            </div>
+          </div>
+          <p class="agent-card-desc">
+            Creates individualized learning paths by analyzing student profiles, skill gaps, and learning patterns to adapt difficulty and recommend optimal resources.
+          </p>
+          <div class="agent-card-features">
+            <span class="feature-chip">👤 Student Profile</span>
+            <span class="feature-chip">📊 Performance Analysis</span>
+            <span class="feature-chip">🎯 Skill Gap</span>
+            <span class="feature-chip">🗺️ Learning Path</span>
+            <span class="feature-chip">📈 Progress Tracking</span>
+          </div>
+          <div class="agent-card-footer">
+            <div class="agent-complexity">
+              <span>Complexity</span>
+              <div class="complexity-dots">
+                <div class="complexity-dot active"></div>
+                <div class="complexity-dot active"></div>
+                <div class="complexity-dot active"></div>
+                <div class="complexity-dot"></div>
+              </div>
+              Medium
+            </div>
+            <div class="agent-card-arrow">→</div>
+          </div>
+        </a>
+
+        <!-- Agent 3: Churn -->
+        <a href="churn.html" class="glass-card agent-card theme-emerald reveal reveal-delay-3">
+          <div class="agent-card-header">
+            <div class="agent-icon">📊</div>
+            <div class="agent-card-meta">
+              <div class="agent-card-tag">Business Intelligence</div>
+              <div class="agent-card-title">Customer Churn Prediction Agent</div>
+            </div>
+          </div>
+          <p class="agent-card-desc">
+            Predicts customer churn probability with risk segmentation and feature importance analysis, enabling proactive retention strategies before customers leave.
+          </p>
+          <div class="agent-card-features">
+            <span class="feature-chip">🔮 Churn Probability</span>
+            <span class="feature-chip">⚖️ Risk Segments</span>
+            <span class="feature-chip">📌 Feature Importance</span>
+            <span class="feature-chip">🎯 High-Risk ID</span>
+            <span class="feature-chip">💼 Retention Plan</span>
+          </div>
+          <div class="agent-card-footer">
+            <div class="agent-complexity">
+              <span>Complexity</span>
+              <div class="complexity-dots">
+                <div class="complexity-dot active"></div>
+                <div class="complexity-dot active"></div>
+                <div class="complexity-dot active"></div>
+                <div class="complexity-dot"></div>
+              </div>
+              Medium
+            </div>
+            <div class="agent-card-arrow">→</div>
+          </div>
+        </a>
+
+        <!-- Agent 4: Demand -->
+        <a href="demand.html" class="glass-card agent-card theme-amber reveal reveal-delay-4">
+          <div class="agent-card-header">
+            <div class="agent-icon">📈</div>
+            <div class="agent-card-meta">
+              <div class="agent-card-tag">Supply Chain & Retail</div>
+              <div class="agent-card-title">Intelligent Demand Forecasting Agent</div>
+            </div>
+          </div>
+          <p class="agent-card-desc">
+            Predicts future product demand using historical sales data with time-series modeling, trend and seasonality detection, anomaly handling, and inventory recommendations.
+          </p>
+          <div class="agent-card-features">
+            <span class="feature-chip">📅 Time-Series</span>
+            <span class="feature-chip">📉 Trend Detection</span>
+            <span class="feature-chip">🌊 Seasonality</span>
+            <span class="feature-chip">🚨 Anomaly Handling</span>
+            <span class="feature-chip">📦 Inventory Rec.</span>
+          </div>
+          <div class="agent-card-footer">
+            <div class="agent-complexity">
+              <span>Complexity</span>
+              <div class="complexity-dots">
+                <div class="complexity-dot active"></div>
+                <div class="complexity-dot active"></div>
+                <div class="complexity-dot active"></div>
+                <div class="complexity-dot"></div>
+              </div>
+              Medium
+            </div>
+            <div class="agent-card-arrow">→</div>
+          </div>
+        </a>
+
+        <!-- Agent 5: Traffic -->
+        <a href="traffic.html" class="glass-card agent-card theme-rose reveal reveal-delay-5">
+          <div class="agent-card-header">
+            <div class="agent-icon">🚦</div>
+            <div class="agent-card-meta">
+              <div class="agent-card-tag">Smart City & Mobility</div>
+              <div class="agent-card-title">Traffic Congestion Prediction Agent</div>
+            </div>
+          </div>
+          <p class="agent-card-desc">
+            Predicts future congestion levels for road segments using historical traffic data, weather, and events, with interactive visualizations and confidence scores.
+          </p>
+          <div class="agent-card-features">
+            <span class="feature-chip">🗺️ Location Analysis</span>
+            <span class="feature-chip">⏰ Peak-Time ID</span>
+            <span class="feature-chip">🌦️ Weather Impact</span>
+            <span class="feature-chip">📊 Visualization</span>
+            <span class="feature-chip">🎯 Confidence Score</span>
+          </div>
+          <div class="agent-card-footer">
+            <div class="agent-complexity">
+              <span>Complexity</span>
+              <div class="complexity-dots">
+                <div class="complexity-dot active"></div>
+                <div class="complexity-dot active"></div>
+                <div class="complexity-dot active"></div>
+                <div class="complexity-dot"></div>
+              </div>
+              Medium
+            </div>
+            <div class="agent-card-arrow">→</div>
+          </div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- FEATURES SECTION -->
+    <section class="features-section" id="features">
+      <div class="section-header">
+        <div class="section-badge" style="background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.3);color:var(--cyan-light);">
+          ✦ Capabilities
+        </div>
+        <h2 class="section-title">Why AI Agents Hub?</h2>
+        <p class="section-subtitle">Built with cutting-edge AI and a focus on real-world impact.</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="glass-card feature-item reveal reveal-delay-1">
+          <div class="feature-icon-wrap" style="background:rgba(139,92,246,0.15);">⚡</div>
+          <h3 class="feature-title">Real-Time Analysis</h3>
+          <p class="feature-desc">All agents process and respond in real-time, delivering instant insights for time-sensitive decisions.</p>
+        </div>
+        <div class="glass-card feature-item reveal reveal-delay-2">
+          <div class="feature-icon-wrap" style="background:rgba(6,182,212,0.15);">🎯</div>
+          <h3 class="feature-title">High Accuracy</h3>
+          <p class="feature-desc">Powered by state-of-the-art ML models trained on vast datasets, achieving over 95% prediction accuracy.</p>
+        </div>
+        <div class="glass-card feature-item reveal reveal-delay-3">
+          <div class="feature-icon-wrap" style="background:rgba(16,185,129,0.15);">📖</div>
+          <h3 class="feature-title">Explainable AI</h3>
+          <p class="feature-desc">Every prediction comes with clear explanations and feature importance rankings you can trust.</p>
+        </div>
+        <div class="glass-card feature-item reveal reveal-delay-1">
+          <div class="feature-icon-wrap" style="background:rgba(245,158,11,0.15);">🔌</div>
+          <h3 class="feature-title">Easy Integration</h3>
+          <p class="feature-desc">REST APIs and webhooks make integrating any agent into your existing workflows straightforward.</p>
+        </div>
+        <div class="glass-card feature-item reveal reveal-delay-2">
+          <div class="feature-icon-wrap" style="background:rgba(244,63,94,0.15);">🔐</div>
+          <h3 class="feature-title">Secure by Design</h3>
+          <p class="feature-desc">Enterprise-grade security with end-to-end encryption and GDPR-compliant data handling.</p>
+        </div>
+        <div class="glass-card feature-item reveal reveal-delay-3">
+          <div class="feature-icon-wrap" style="background:rgba(139,92,246,0.15);">📊</div>
+          <h3 class="feature-title">Rich Visualizations</h3>
+          <p class="feature-desc">Interactive charts, dashboards, and heat maps transform complex data into clear visual insights.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA SECTION -->
+    <section class="cta-section">
+      <div class="cta-glow"></div>
+      <div class="cta-inner reveal">
+        <div class="hero-badge" style="margin-bottom:1.5rem;">
+          <span class="hero-badge-dot"></span>
+          Ready to get started?
+        </div>
+        <h2 class="cta-title">
+          Transform Your Business with<br/>
+          <span class="gradient-text">Intelligent AI Agents</span>
+        </h2>
+        <p class="cta-subtitle">
+          Pick any agent and see its live interactive demo — no setup required.
+        </p>
+        <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+          <a href="code-review.html" class="btn btn-primary btn-lg">🔍 Try Code Review Agent</a>
+          <a href="learning.html" class="btn btn-secondary btn-lg">📚 Try Learning Agent</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand">
+          <div class="nav-brand-icon">🤖</div>
+          AI Agents Hub
+        </div>
+        <p class="footer-tagline">Five intelligent solutions. One unified platform.</p>
+      </div>
+      <div class="footer-links">
+        <a href="code-review.html">Code Review</a>
+        <a href="learning.html">Learning</a>
+        <a href="churn.html">Churn</a>
+        <a href="demand.html">Demand</a>
+        <a href="traffic.html">Traffic</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ===================== PARTICLES =====================
+    const canvas = document.getElementById('particles-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function createParticles() {
+      particles = [];
+      const count = Math.floor((canvas.width * canvas.height) / 25000);
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          radius: Math.random() * 1.5 + 0.3,
+          vx: (Math.random() - 0.5) * 0.3,
+          vy: (Math.random() - 0.5) * 0.3,
+          opacity: Math.random() * 0.5 + 0.1,
+          color: ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b'][Math.floor(Math.random() * 4)]
+        });
+      }
+    }
+
+    function drawParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.opacity;
+        ctx.fill();
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+      });
+      ctx.globalAlpha = 1;
+      requestAnimationFrame(drawParticles);
+    }
+
+    window.addEventListener('resize', () => { resizeCanvas(); createParticles(); });
+    resizeCanvas();
+    createParticles();
+    drawParticles();
+
+    // ===================== NAVBAR SCROLL =====================
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 20);
+    });
+
+    // ===================== HAMBURGER =====================
+    function toggleNav() {
+      document.getElementById('navLinks').classList.toggle('open');
+    }
+
+    // ===================== SCROLL REVEAL =====================
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+    // ===================== COUNTER ANIMATION =====================
+    function animateCounter(el, target, suffix = '') {
+      let current = 0;
+      const duration = 1500;
+      const step = target / (duration / 16);
+      const timer = setInterval(() => {
+        current = Math.min(current + step, target);
+        el.textContent = Math.floor(current) + suffix;
+        if (current >= target) clearInterval(timer);
+      }, 16);
+    }
+
+    const statsObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          animateCounter(document.getElementById('stat1'), 5, '');
+          animateCounter(document.getElementById('stat2'), 35, '+');
+          animateCounter(document.getElementById('stat3'), 98, '%');
+          statsObserver.disconnect();
+        }
+      });
+    }, { threshold: 0.5 });
+
+    const statsEl = document.querySelector('.hero-stats');
+    if (statsEl) statsObserver.observe(statsEl);
+
+    // Active nav link
+    document.querySelectorAll('.nav-links a').forEach(a => {
+      if (a.href === window.location.href) a.classList.add('active');
+    });
+  </script>
+</body>
+</html>

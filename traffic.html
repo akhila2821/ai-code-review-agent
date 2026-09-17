@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Traffic Congestion Prediction Agent | AI Agents Hub</title>
+  <meta name="description" content="AI-powered traffic congestion prediction with location-based analysis, peak-time identification, weather impact, and confidence scores." />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .road-selector { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem; }
+    .road-card { padding: 1rem; border-radius: var(--radius-md); border: 2px solid var(--border-glass); background: var(--bg-card); cursor: pointer; transition: var(--transition); text-align: center; }
+    .road-card.active { border-color: var(--rose); background: rgba(244,63,94,0.08); }
+    .road-card:hover { transform: translateY(-2px); }
+    .road-name { font-weight: 700; font-size: 0.88rem; }
+    .road-status { font-size: 0.75rem; margin-top: 4px; }
+    .congestion-level { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: var(--radius-full); font-size: 0.72rem; font-weight: 700; }
+    .cong-high { background: rgba(244,63,94,0.15); color: var(--rose-light); border: 1px solid rgba(244,63,94,0.3); }
+    .cong-medium { background: rgba(245,158,11,0.15); color: var(--amber-light); border: 1px solid rgba(245,158,11,0.3); }
+    .cong-low { background: rgba(16,185,129,0.15); color: var(--emerald-light); border: 1px solid rgba(16,185,129,0.3); }
+    .heatmap-grid { display: grid; grid-template-columns: auto repeat(24, 1fr); gap: 2px; font-size: 0.62rem; }
+    .heatmap-cell { aspect-ratio: 1; border-radius: 2px; min-width: 18px; min-height: 18px; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; transition: transform 0.2s; cursor: pointer; }
+    .heatmap-cell:hover { transform: scale(1.4); z-index: 1; position: relative; }
+    .heatmap-label { display: flex; align-items: center; font-size: 0.65rem; color: var(--text-muted); white-space: nowrap; padding-right: 6px; }
+    .weather-factors { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
+    .weather-item { padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-glass); background: var(--bg-card); text-align: center; }
+    .weather-icon { font-size: 1.8rem; }
+    .weather-impact { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+    .confidence-bar { height: 10px; background: linear-gradient(90deg, var(--rose), var(--amber), var(--emerald)); border-radius: 99px; position: relative; }
+    .confidence-marker { position: absolute; top: -4px; width: 18px; height: 18px; border-radius: 50%; border: 3px solid white; transform: translateX(-50%); transition: left 1s ease; }
+    @media(max-width:900px){ .weather-factors{grid-template-columns:repeat(2,1fr);} }
+    @media(max-width:600px){ .weather-factors{grid-template-columns:1fr 1fr;} }
+  </style>
+</head>
+<body>
+  <div class="bg-gradient-mesh"></div>
+  <nav class="navbar" id="navbar">
+    <a href="index.html" class="nav-brand"><div class="nav-brand-icon">🤖</div><span>AI Agents Hub</span></a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="code-review.html">🔍 Code Review</a></li>
+      <li><a href="learning.html">📚 Learning</a></li>
+      <li><a href="churn.html">📊 Churn</a></li>
+      <li><a href="demand.html">📈 Demand</a></li>
+      <li><a href="traffic.html" class="active">🚦 Traffic</a></li>
+      <li><a href="index.html" class="nav-cta btn">← Home</a></li>
+    </ul>
+    <div class="hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')"><span></span><span></span><span></span></div>
+  </nav>
+
+  <main class="main-content">
+    <!-- HERO -->
+    <section class="agent-hero">
+      <div class="agent-hero-breadcrumb">
+        <a href="index.html">Home</a> <span>›</span> <span style="color:var(--rose-light)">Traffic Congestion Agent</span>
+      </div>
+      <div class="agent-hero-content">
+        <div class="agent-hero-text">
+          <div class="agent-hero-badge" style="background:rgba(244,63,94,0.12);border:1px solid rgba(244,63,94,0.3);color:var(--rose-light);">🚦 Smart City & Mobility · Medium Complexity</div>
+          <h1 class="agent-hero-title">Traffic Congestion<br/><span style="background:linear-gradient(135deg,var(--rose-light),var(--amber-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Prediction Agent</span></h1>
+          <p class="agent-hero-desc">Predict future traffic congestion levels for any road segment. Our AI processes historical traffic data, weather conditions, local events, and time patterns to deliver highly accurate congestion forecasts.</p>
+          <div class="agent-hero-actions">
+            <a href="#demo" class="btn btn-primary" style="background:linear-gradient(135deg,var(--rose),var(--amber));">🚦 View Predictions</a>
+            <a href="#heatmap" class="btn btn-secondary">🌡️ Heat Map</a>
+          </div>
+        </div>
+        <div class="agent-hero-visual">
+          <div class="glass-card" style="padding:1.5rem;">
+            <div style="font-weight:700;font-family:var(--font-primary);margin-bottom:1rem;">📍 Live Segment Status</div>
+            <div id="liveStatus"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- METRICS BAR -->
+    <section style="padding:0 2rem 2rem;max-width:1200px;margin:0 auto;">
+      <div class="metrics-grid" style="grid-template-columns:repeat(4,1fr);">
+        <div class="glass-card metric-card"><div class="metric-value text-rose" id="tm1">0</div><div class="metric-label">Segments Monitored</div></div>
+        <div class="glass-card metric-card"><div class="metric-value text-amber" id="tm2">0%</div><div class="metric-label">Prediction Accuracy</div></div>
+        <div class="glass-card metric-card"><div class="metric-value text-cyan" id="tm3">0</div><div class="metric-label">Incidents Predicted</div></div>
+        <div class="glass-card metric-card"><div class="metric-value text-emerald" id="tm4">0 min</div><div class="metric-label">Avg Time Saved</div></div>
+      </div>
+    </section>
+
+    <!-- MAIN DEMO -->
+    <section class="demo-section" id="demo">
+      <div class="glass-card demo-panel">
+        <div class="demo-header">
+          <div class="demo-title">🚦 Congestion Forecast by Road Segment</div>
+          <div class="demo-controls">
+            <select id="dayType" class="btn btn-sm btn-secondary" onchange="updateForecast()" style="cursor:pointer;">
+              <option value="weekday">Weekday</option>
+              <option value="weekend">Weekend</option>
+              <option value="holiday">Public Holiday</option>
+            </select>
+            <select id="weatherCond" class="btn btn-sm btn-secondary" onchange="updateForecast()" style="cursor:pointer;">
+              <option value="clear">☀️ Clear</option>
+              <option value="rain">🌧️ Rainy</option>
+              <option value="fog">🌫️ Foggy</option>
+              <option value="snow">❄️ Snowy</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="font-size:0.8rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.75rem;">Select Road Segment:</div>
+        <div class="road-selector" id="roadSelector"></div>
+
+        <canvas id="congestionChart" height="110" style="margin-bottom:1.5rem;"></canvas>
+
+        <!-- Prediction confidence -->
+        <div class="glass-card" style="padding:1.25rem;margin-bottom:1.5rem;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;flex-wrap:wrap;gap:0.5rem;">
+            <div style="font-weight:700;font-size:0.9rem;">🎯 Prediction Confidence</div>
+            <div style="font-family:var(--font-primary);font-size:1.4rem;font-weight:800;color:var(--emerald-light);" id="confValue">91%</div>
+          </div>
+          <div class="confidence-bar">
+            <div class="confidence-marker" id="confMarker" style="left:91%;background:var(--emerald-light);"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--text-muted);margin-top:6px;">
+            <span>Low Confidence</span><span>High Confidence</span>
+          </div>
+        </div>
+
+        <!-- Peak times -->
+        <div class="grid-2" style="gap:1.5rem;">
+          <div>
+            <div style="font-weight:700;font-size:0.9rem;margin-bottom:0.75rem;">⏰ Peak Congestion Times</div>
+            <div id="peakTimes"></div>
+          </div>
+          <div>
+            <div style="font-weight:700;font-size:0.9rem;margin-bottom:0.75rem;">🌦️ Weather Impact on Congestion</div>
+            <canvas id="weatherChart" height="160"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HEATMAP -->
+    <section style="padding:0 2rem 4rem;max-width:1200px;margin:0 auto;" id="heatmap">
+      <div class="section-header" style="margin-bottom:1.5rem;">
+        <h2 class="section-title" style="font-size:1.75rem;">🌡️ Weekly Traffic Heat Map</h2>
+        <p class="section-subtitle" style="font-size:0.9rem;">Color intensity = congestion level (darker = heavier traffic). Hover cells for details.</p>
+      </div>
+      <div class="glass-card" style="padding:1.5rem;overflow-x:auto;">
+        <div id="heatmapGrid"></div>
+        <div style="display:flex;align-items:center;gap:1rem;margin-top:1rem;flex-wrap:wrap;">
+          <span style="font-size:0.78rem;color:var(--text-muted);">Congestion level:</span>
+          <div style="display:flex;align-items:center;gap:4px;">
+            <div style="width:80px;height:10px;background:linear-gradient(90deg,rgba(16,185,129,0.8),rgba(245,158,11,0.8),rgba(244,63,94,0.9));border-radius:99px;"></div>
+          </div>
+          <span style="font-size:0.72rem;color:var(--emerald-light);">Low</span>
+          <span style="font-size:0.72rem;color:var(--amber-light);">Medium</span>
+          <span style="font-size:0.72rem;color:var(--rose-light);">High</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div><div class="footer-brand"><div class="nav-brand-icon">🤖</div> AI Agents Hub</div><p class="footer-tagline">Traffic Congestion Prediction Agent</p></div>
+      <div class="footer-links"><a href="demand.html">← Demand</a><a href="index.html">← Back to Home</a></div>
+    </div>
+  </footer>
+
+  <script>
+    window.addEventListener('scroll', () => document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20));
+
+    // Animate metrics
+    function anim(id, to, suf='') {
+      const el = document.getElementById(id);
+      let c = 0; const step = to / 60;
+      const t = setInterval(() => {
+        c = Math.min(c + step, to);
+        el.textContent = Math.floor(c).toLocaleString() + suf;
+        if (c >= to) clearInterval(t);
+      }, 16);
+    }
+    setTimeout(() => {
+      anim('tm1', 847, ''); anim('tm2', 92, '%'); anim('tm3', 3241, ''); anim('tm4', 18, ' min');
+    }, 400);
+
+    // Road segments
+    const roads = [
+      { id: 'hwy1', name: '🛣️ Highway 101', base: 65, status: 'high' },
+      { id: 'downtown', name: '🏙️ Downtown Main St', base: 75, status: 'high' },
+      { id: 'bridge', name: '🌉 Bay Bridge', base: 55, status: 'medium' },
+      { id: 'ring', name: '⭕ Ring Road N', base: 40, status: 'low' },
+      { id: 'airport', name: '✈️ Airport Expressway', base: 60, status: 'medium' },
+    ];
+
+    let selectedRoad = 'hwy1';
+    let congChart, weatherChart;
+
+    const liveStatus = document.getElementById('liveStatus');
+    roads.forEach(r => {
+      const cls = r.status === 'high' ? 'cong-high' : r.status === 'medium' ? 'cong-medium' : 'cong-low';
+      const emoji = r.status === 'high' ? '🔴' : r.status === 'medium' ? '🟡' : '🟢';
+      liveStatus.innerHTML += `<div style="display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--border-glass);">
+        <span style="font-size:0.83rem;">${r.name}</span>
+        <span class="congestion-level ${cls}">${emoji} ${r.status}</span>
+      </div>`;
+    });
+
+    // Road selector
+    const rs = document.getElementById('roadSelector');
+    roads.forEach(r => {
+      const cls = r.status === 'high' ? 'cong-high' : r.status === 'medium' ? 'cong-medium' : 'cong-low';
+      rs.innerHTML += `<div class="road-card ${r.id === selectedRoad ? 'active' : ''}" id="rc-${r.id}" onclick="selectRoad('${r.id}')">
+        <div class="road-name">${r.name}</div>
+        <div class="road-status"><span class="congestion-level ${cls}">${r.status} traffic</span></div>
+      </div>`;
+    });
+
+    function selectRoad(id) {
+      selectedRoad = id;
+      document.querySelectorAll('.road-card').forEach(c => c.classList.remove('active'));
+      document.getElementById('rc-' + id).classList.add('active');
+      updateForecast();
+    }
+
+    function getHourlyData(base, dayType, weather) {
+      const dayMod = dayType === 'weekend' ? 0.7 : dayType === 'holiday' ? 0.4 : 1;
+      const wMod = weather === 'rain' ? 1.2 : weather === 'snow' ? 1.4 : weather === 'fog' ? 1.1 : 1;
+      const hours = [];
+      for (let h = 0; h < 24; h++) {
+        let val = 15;
+        if (h >= 7 && h <= 9) val = base * 1.0 * dayMod * wMod;
+        else if (h >= 10 && h <= 11) val = base * 0.65 * dayMod * wMod;
+        else if (h >= 12 && h <= 13) val = base * 0.75 * dayMod * wMod;
+        else if (h >= 14 && h <= 15) val = base * 0.6 * dayMod * wMod;
+        else if (h >= 16 && h <= 19) val = base * 0.95 * dayMod * wMod;
+        else if (h >= 20 && h <= 21) val = base * 0.4 * dayMod * wMod;
+        else if (h >= 22 || h <= 5) val = 15 + Math.random() * 10;
+        else val = base * 0.35 * dayMod * wMod;
+        hours.push(Math.min(100, Math.round(val + (Math.random() - 0.5) * 8)));
+      }
+      return hours;
+    }
+
+    function getCongColor(v) {
+      if (v >= 70) return 'rgba(244,63,94,0.8)';
+      if (v >= 45) return 'rgba(245,158,11,0.8)';
+      return 'rgba(16,185,129,0.7)';
+    }
+
+    function updateForecast() {
+      const road = roads.find(r => r.id === selectedRoad);
+      const dayType = document.getElementById('dayType').value;
+      const weather = document.getElementById('weatherCond').value;
+      const data = getHourlyData(road.base, dayType, weather);
+
+      const hours = Array.from({length:24}, (_,i) => `${i.toString().padStart(2,'0')}:00`);
+
+      if (congChart) congChart.destroy();
+      congChart = new Chart(document.getElementById('congestionChart'), {
+        type: 'bar',
+        data: {
+          labels: hours,
+          datasets: [{
+            label: 'Congestion Level (%)',
+            data,
+            backgroundColor: data.map(getCongColor),
+            borderRadius: 3
+          }, {
+            label: 'Threshold (70%)',
+            data: Array(24).fill(70),
+            type: 'line',
+            borderColor: 'rgba(244,63,94,0.4)',
+            borderDash: [6,4],
+            borderWidth: 1,
+            pointRadius: 0
+          }]
+        },
+        options: { responsive: true, interaction: { mode: 'index', intersect: false }, scales: { x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b', maxRotation: 0, font: { size: 10 } } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b', callback: v => v+'%' }, min: 0, max: 100 } }, plugins: { legend: { labels: { color: '#94a3b8', boxWidth: 12, font: { size: 11 } } } } }
+      });
+
+      // Confidence
+      const wMod = weather === 'clear' ? 91 : weather === 'rain' ? 86 : weather === 'fog' ? 82 : 78;
+      document.getElementById('confValue').textContent = wMod + '%';
+      document.getElementById('confMarker').style.left = wMod + '%';
+      document.getElementById('confMarker').style.background = wMod > 88 ? 'var(--emerald-light)' : wMod > 82 ? 'var(--amber-light)' : 'var(--rose-light)';
+
+      // Peak times
+      const peaks = [];
+      data.forEach((v,i) => { if (v >= 65) peaks.push({ hour: hours[i], val: v }); });
+      const pt = document.getElementById('peakTimes');
+      const peakGroups = [
+        { label: '🌅 Morning Rush', hours: '07:00 – 09:00', val: Math.round(data.slice(7,10).reduce((a,b)=>a+b,0)/3) },
+        { label: '🌇 Evening Rush', hours: '16:00 – 19:00', val: Math.round(data.slice(16,20).reduce((a,b)=>a+b,0)/4) },
+        { label: '🍽️ Lunch Period', hours: '12:00 – 13:00', val: Math.round(data.slice(12,14).reduce((a,b)=>a+b,0)/2) },
+      ];
+      pt.innerHTML = peakGroups.map(p => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:0.875rem 1rem;border-radius:var(--radius-md);background:var(--bg-card);border:1px solid var(--border-glass);margin-bottom:0.5rem;">
+          <div><div style="font-weight:600;font-size:0.88rem;">${p.label}</div><div style="font-size:0.78rem;color:var(--text-muted);">${p.hours}</div></div>
+          <div style="text-align:right;">
+            <div style="font-family:var(--font-primary);font-size:1.4rem;font-weight:800;color:${p.val>=70?'var(--rose-light)':p.val>=45?'var(--amber-light)':'var(--emerald-light)'};">${p.val}%</div>
+            <div style="font-size:0.7rem;color:var(--text-muted);">congestion</div>
+          </div>
+        </div>`).join('');
+    }
+
+    // Weather chart
+    const wCtx = document.getElementById('weatherChart');
+    new Chart(wCtx, {
+      type: 'radar',
+      data: {
+        labels: ['Morning', 'Noon', 'Afternoon', 'Evening', 'Night'],
+        datasets: [
+          { label: '☀️ Clear', data: [65,40,50,72,20], borderColor: 'rgba(245,158,11,0.8)', backgroundColor: 'rgba(245,158,11,0.08)', pointBackgroundColor: 'var(--amber)', borderWidth: 2 },
+          { label: '🌧️ Rainy', data: [82,55,68,90,30], borderColor: 'rgba(6,182,212,0.8)', backgroundColor: 'rgba(6,182,212,0.08)', pointBackgroundColor: 'var(--cyan)', borderWidth: 2 },
+          { label: '❄️ Snowy', data: [88,65,78,95,45], borderColor: 'rgba(244,63,94,0.8)', backgroundColor: 'rgba(244,63,94,0.08)', pointBackgroundColor: 'var(--rose)', borderWidth: 2 }
+        ]
+      },
+      options: { responsive: true, scales: { r: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { display: false, max: 100, min: 0 }, pointLabels: { color: '#94a3b8', font: { size: 10 } } } }, plugins: { legend: { labels: { color: '#94a3b8', boxWidth: 12, font: { size: 10 } } } } }
+    });
+
+    // Heatmap
+    const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    const hourLabels = Array.from({length:24},(_,i)=>i%3===0?`${i}h`:'');
+    const grid = document.getElementById('heatmapGrid');
+
+    function heatColor(val) {
+      if (val < 30) return `rgba(16,185,129,${0.3 + val/100})`;
+      if (val < 60) return `rgba(245,158,11,${0.4 + val/150})`;
+      return `rgba(244,63,94,${0.4 + val/120})`;
+    }
+
+    let heatHtml = '<div class="heatmap-grid">';
+    // Header row
+    heatHtml += '<div></div>';
+    for (let h = 0; h < 24; h++) {
+      heatHtml += `<div style="text-align:center;font-size:0.6rem;color:var(--text-muted);padding-bottom:4px;">${h%3===0?h+'h':''}</div>`;
+    }
+
+    days.forEach(day => {
+      heatHtml += `<div class="heatmap-label">${day}</div>`;
+      for (let h = 0; h < 24; h++) {
+        let val = 15;
+        const isMon = day !== 'Sat' && day !== 'Sun';
+        if (isMon) {
+          if (h >= 7 && h <= 9) val = 65 + Math.random()*25;
+          else if (h >= 16 && h <= 19) val = 70 + Math.random()*22;
+          else if (h >= 12 && h <= 13) val = 45 + Math.random()*20;
+          else if (h >= 22 || h < 6) val = 5 + Math.random()*15;
+          else val = 25 + Math.random()*25;
+        } else {
+          if (h >= 10 && h <= 14) val = 50 + Math.random()*25;
+          else if (h >= 15 && h <= 18) val = 45 + Math.random()*20;
+          else if (h >= 22 || h < 8) val = 5 + Math.random()*12;
+          else val = 20 + Math.random()*20;
+        }
+        val = Math.round(val);
+        const label = val >= 70 ? 'H' : val >= 45 ? 'M' : 'L';
+        heatHtml += `<div class="heatmap-cell" style="background:${heatColor(val)};" title="${day} ${h}:00 — ${val}% congestion (${label})">${''}</div>`;
+      }
+    });
+
+    heatHtml += '</div>';
+    grid.innerHTML = heatHtml;
+
+    updateForecast();
+  </script>
+</body>
+</html>

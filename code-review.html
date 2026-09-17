@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Code Review & Vulnerability Detection Agent | AI Agents Hub</title>
+  <meta name="description" content="AI-powered code review assistant that detects bugs, security vulnerabilities, and code smells with severity classification and suggested fixes." />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .code-split { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    .severity-summary { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .sev-pill { display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: var(--radius-full); font-size: 0.78rem; font-weight: 700; }
+    .sev-pill.critical { background: rgba(244,63,94,0.15); color: var(--rose-light); border: 1px solid rgba(244,63,94,0.3); }
+    .sev-pill.high { background: rgba(245,158,11,0.15); color: var(--amber-light); border: 1px solid rgba(245,158,11,0.3); }
+    .sev-pill.medium { background: rgba(139,92,246,0.15); color: var(--purple-light); border: 1px solid rgba(139,92,246,0.3); }
+    .sev-pill.low { background: rgba(6,182,212,0.15); color: var(--cyan-light); border: 1px solid rgba(6,182,212,0.3); }
+    .sev-pill.info { background: rgba(16,185,129,0.15); color: var(--emerald-light); border: 1px solid rgba(16,185,129,0.3); }
+    .scan-btn { background: linear-gradient(135deg, var(--purple), var(--cyan)); color: #fff; border: none; border-radius: var(--radius-md); padding: 0.7rem 1.5rem; font-size: 0.9rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: var(--transition); }
+    .scan-btn:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 8px 24px var(--purple-glow); }
+    .scan-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .code-line-num { color: var(--text-muted); font-size: 0.72rem; margin-right: 12px; user-select: none; }
+    .code-area { font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.8; color: #e2e8f0; padding: 1.25rem; min-height: 260px; width: 100%; background: transparent; border: none; outline: none; resize: none; }
+    .score-ring { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+    .score-value { font-family: var(--font-primary); font-size: 2.8rem; font-weight: 800; }
+    .score-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+    .issue-line { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); }
+    .fix-code { background: rgba(0,0,0,0.4); border-radius: var(--radius-sm); padding: 0.75rem 1rem; font-family: var(--font-mono); font-size: 0.76rem; color: var(--emerald-light); margin-top: 0.5rem; border-left: 3px solid var(--emerald); white-space: pre-wrap; }
+    @media(max-width:768px){.code-split{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+  <div class="bg-gradient-mesh"></div>
+  <nav class="navbar" id="navbar">
+    <a href="index.html" class="nav-brand">
+      <div class="nav-brand-icon">🤖</div><span>AI Agents Hub</span>
+    </a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="code-review.html" class="active">🔍 Code Review</a></li>
+      <li><a href="learning.html">📚 Learning</a></li>
+      <li><a href="churn.html">📊 Churn</a></li>
+      <li><a href="demand.html">📈 Demand</a></li>
+      <li><a href="traffic.html">🚦 Traffic</a></li>
+      <li><a href="index.html" class="nav-cta btn">← Home</a></li>
+    </ul>
+    <div class="hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')">
+      <span></span><span></span><span></span>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <!-- HERO -->
+    <section class="agent-hero">
+      <div class="agent-hero-breadcrumb">
+        <a href="index.html">Home</a> <span>›</span> <span style="color:var(--purple-light)">Code Review Agent</span>
+      </div>
+      <div class="agent-hero-content">
+        <div class="agent-hero-text">
+          <div class="agent-hero-badge" style="background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.3);color:var(--purple-light);">
+            🔍 Security & Quality · Medium Complexity
+          </div>
+          <h1 class="agent-hero-title">AI Code Review &amp;<br/><span class="text-gradient-purple">Vulnerability Detection</span></h1>
+          <p class="agent-hero-desc">
+            Paste any code snippet and our AI agent will instantly analyze it for bugs, security vulnerabilities, code smells, and maintainability issues — complete with severity ratings and suggested fixes.
+          </p>
+          <div class="agent-hero-actions">
+            <a href="#demo" class="btn btn-primary">🚀 Try Live Demo</a>
+            <a href="#features" class="btn btn-secondary">📋 Features</a>
+          </div>
+        </div>
+        <div class="agent-hero-visual">
+          <div class="glass-card" style="padding:1.5rem;">
+            <div style="display:flex;gap:1rem;align-items:center;margin-bottom:1.25rem;">
+              <div style="font-size:2.5rem;">🔍</div>
+              <div>
+                <div style="font-family:var(--font-primary);font-weight:700;font-size:1.1rem;">Code Analyzer</div>
+                <div style="font-size:0.8rem;color:var(--text-muted);">Real-time vulnerability scanner</div>
+              </div>
+            </div>
+            <div class="metrics-grid" style="grid-template-columns:repeat(2,1fr);">
+              <div class="glass-card metric-card"><div class="metric-value text-rose">12</div><div class="metric-label">Issues Found</div></div>
+              <div class="glass-card metric-card"><div class="metric-value text-amber">3</div><div class="metric-label">Critical</div></div>
+              <div class="glass-card metric-card"><div class="metric-value text-emerald">84</div><div class="metric-label">Quality Score</div></div>
+              <div class="glass-card metric-card"><div class="metric-value text-cyan">7</div><div class="metric-label">Fixes Applied</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LIVE DEMO -->
+    <section class="demo-section" id="demo">
+      <div class="demo-panel glass-card">
+        <div class="demo-header">
+          <div class="demo-title">🔍 Live Code Analysis Demo</div>
+          <div class="demo-controls">
+            <button class="btn btn-sm btn-secondary" onclick="loadSample('python')">Python Sample</button>
+            <button class="btn btn-sm btn-secondary" onclick="loadSample('js')">JS Sample</button>
+            <button class="btn btn-sm btn-secondary" onclick="loadSample('sql')">SQL Sample</button>
+            <button class="scan-btn" id="scanBtn" onclick="runAnalysis()">
+              <span id="scanIcon">⚡</span> <span id="scanText">Analyze Code</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="code-split">
+          <div>
+            <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.5rem;font-weight:600;">INPUT — Paste or edit your code:</div>
+            <div class="code-editor">
+              <div class="code-editor-header">
+                <div class="editor-dot red"></div>
+                <div class="editor-dot yellow"></div>
+                <div class="editor-dot green"></div>
+                <span class="editor-filename" id="editorFilename">main.py</span>
+              </div>
+              <textarea class="code-area" id="codeInput" spellcheck="false" placeholder="Paste your code here..."></textarea>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.5rem;font-weight:600;">ANALYSIS RESULTS:</div>
+            <div id="analysisResults">
+              <div style="text-align:center;padding:3rem 1rem;color:var(--text-muted);">
+                <div style="font-size:3rem;margin-bottom:0.75rem;">👈</div>
+                <div style="font-weight:600;">Paste code and click Analyze</div>
+                <div style="font-size:0.82rem;margin-top:0.5rem;">or load a sample from above</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="features-section" id="features" style="padding-top:2rem;">
+      <div class="section-header">
+        <div class="section-badge" style="background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);color:var(--purple-light);">✦ Capabilities</div>
+        <h2 class="section-title">What This Agent Detects</h2>
+      </div>
+      <div class="features-grid">
+        <div class="glass-card feature-item">
+          <div class="feature-icon-wrap" style="background:rgba(244,63,94,0.15);">🐛</div>
+          <h3 class="feature-title">Bug Detection</h3>
+          <p class="feature-desc">Identifies null pointer exceptions, off-by-one errors, infinite loops, unhandled exceptions, and logic flaws.</p>
+        </div>
+        <div class="glass-card feature-item">
+          <div class="feature-icon-wrap" style="background:rgba(245,158,11,0.15);">🔐</div>
+          <h3 class="feature-title">Security Vulnerabilities</h3>
+          <p class="feature-desc">Detects SQL injection, XSS, hardcoded credentials, insecure deserialization, and OWASP Top 10 issues.</p>
+        </div>
+        <div class="glass-card feature-item">
+          <div class="feature-icon-wrap" style="background:rgba(139,92,246,0.15);">👃</div>
+          <h3 class="feature-title">Code Smell Detection</h3>
+          <p class="feature-desc">Flags long methods, duplicate code, God classes, magic numbers, and other maintainability anti-patterns.</p>
+        </div>
+        <div class="glass-card feature-item">
+          <div class="feature-icon-wrap" style="background:rgba(6,182,212,0.15);">⚠️</div>
+          <h3 class="feature-title">Severity Classification</h3>
+          <p class="feature-desc">Each issue is rated Critical, High, Medium, Low, or Info with a full explanation of the risk level.</p>
+        </div>
+        <div class="glass-card feature-item">
+          <div class="feature-icon-wrap" style="background:rgba(16,185,129,0.15);">💡</div>
+          <h3 class="feature-title">Suggested Improvements</h3>
+          <p class="feature-desc">Provides concrete, copy-paste-ready code fixes with explanations of why the change improves the code.</p>
+        </div>
+        <div class="glass-card feature-item">
+          <div class="feature-icon-wrap" style="background:rgba(244,63,94,0.15);">📊</div>
+          <h3 class="feature-title">Quality Score</h3>
+          <p class="feature-desc">Calculates an overall quality score (0–100) based on severity-weighted issues across all detection categories.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand"><div class="nav-brand-icon">🤖</div> AI Agents Hub</div>
+        <p class="footer-tagline">AI Code Review & Vulnerability Detection Agent</p>
+      </div>
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="learning.html">Next: Learning →</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    window.addEventListener('scroll', () => {
+      document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20);
+    });
+
+    const samples = {
+      python: {
+        name: 'main.py',
+        code: `import sqlite3
+import os
+
+# Database connection
+DB_PASSWORD = "admin123"  # Hardcoded password
+SECRET_KEY = "my_super_secret_key_12345"
+
+def get_user(username):
+    conn = sqlite3.connect("users.db")
+    cursor = conn.cursor()
+    # SQL Injection vulnerability
+    query = "SELECT * FROM users WHERE username = '" + username + "'"
+    cursor.execute(query)
+    result = cursor.fetchall()
+    return result
+
+def process_data(data):
+    # No input validation
+    items = data["items"]
+    total = 0
+    for i in range(len(items) + 1):  # Off-by-one error
+        total += items[i]["price"]
+    return total
+
+def login(user, pwd):
+    if pwd == DB_PASSWORD:  # Comparing with hardcoded password
+        return True
+    # Missing else / no return False leads to None return
+
+class UserManager:
+    def __init__(self):
+        self.users = {}
+        self.conn = sqlite3.connect("users.db")  # Connection never closed
+
+    def add_user(self, name, data):
+        # Duplicate logic from get_user
+        conn = sqlite3.connect("users.db")
+        cursor = conn.cursor()
+        query = "INSERT INTO users VALUES ('" + name + "', '" + str(data) + "')"
+        cursor.execute(query)
+        conn.commit()
+`
+      },
+      js: {
+        name: 'auth.js',
+        code: `const express = require('express');
+const app = express();
+
+// Hardcoded API key
+const API_KEY = "sk-prod-abc123xyz789secret";
+const JWT_SECRET = "secret";
+
+app.post('/login', (req, res) => {
+  const { username, password } = req.body;
+
+  // XSS vulnerability - directly injecting user input into HTML
+  const html = '<h1>Welcome ' + username + '</h1>';
+  res.send(html);
+});
+
+app.get('/user', (req, res) => {
+  const id = req.query.id;
+  // SQL injection risk
+  const query = \`SELECT * FROM users WHERE id = \${id}\`;
+  db.query(query, (err, result) => {
+    if (err) throw err;  // No proper error handling
+    res.json(result);
+  });
+});
+
+// Eval usage - dangerous
+function compute(expr) {
+  return eval(expr);
+}
+
+// Infinite loop risk
+function findUser(users, id) {
+  let i = 0;
+  while (true) {
+    if (users[i].id === id) return users[i];
+    i++;
+    // No break condition if id not found
+  }
+}
+
+app.listen(3000);
+`
+      },
+      sql: {
+        name: 'queries.sql',
+        code: `-- Dangerous SQL patterns
+
+-- No parameterization (injection risk in app layer)
+SELECT * FROM users WHERE email = 'user_input_here';
+
+-- Selecting all columns (performance + data exposure)
+SELECT * FROM customers;
+SELECT * FROM orders JOIN customers ON orders.customer_id = customers.id;
+
+-- Missing WHERE clause on UPDATE (will update ALL rows!)
+UPDATE users SET status = 'active';
+
+-- Missing WHERE clause on DELETE (will delete ALL rows!)
+DELETE FROM sessions;
+
+-- Password stored in plaintext
+INSERT INTO users (username, password) VALUES ('admin', 'password123');
+
+-- No LIMIT on potentially large result set
+SELECT * FROM audit_logs ORDER BY created_at DESC;
+
+-- Sensitive data in log table without encryption
+CREATE TABLE user_logs (
+  id INT PRIMARY KEY,
+  user_id INT,
+  credit_card VARCHAR(20),  -- PII without encryption
+  ssn VARCHAR(11),          -- PII without encryption
+  action VARCHAR(255),
+  logged_at TIMESTAMP
+);
+`
+      }
+    };
+
+    function loadSample(type) {
+      const s = samples[type];
+      document.getElementById('codeInput').value = s.code;
+      document.getElementById('editorFilename').textContent = s.name;
+    }
+
+    loadSample('python');
+
+    const issueDB = {
+      python: [
+        { severity: 'critical', type: 'Security: SQL Injection', line: 'Line 11', message: 'User input directly concatenated into SQL query. Attacker can manipulate the query to extract, modify, or delete any data.', fix: '# Use parameterized queries:\nquery = "SELECT * FROM users WHERE username = ?"\ncursor.execute(query, (username,))' },
+        { severity: 'critical', type: 'Security: Hardcoded Credentials', line: 'Lines 5–6', message: 'Passwords and secret keys hardcoded in source code. These will be exposed in version control and logs.', fix: '# Use environment variables instead:\nDB_PASSWORD = os.environ.get("DB_PASSWORD")\nSECRET_KEY = os.environ.get("SECRET_KEY")' },
+        { severity: 'high', type: 'Bug: Off-by-One Error', line: 'Line 22', message: 'Loop range is len(items)+1, causing an IndexError on the last iteration when accessing items[i].', fix: '# Fix the range:\nfor i in range(len(items)):  # or: for item in items:' },
+        { severity: 'high', type: 'Bug: Missing Return Statement', line: 'Line 27', message: 'login() returns None when password does not match, which is truthy in some contexts. Add explicit return False.', fix: 'def login(user, pwd):\n    if pwd == DB_PASSWORD:\n        return True\n    return False  # Explicit return' },
+        { severity: 'medium', type: 'Code Smell: Resource Leak', line: 'Line 32', message: 'SQLite connection opened in __init__ is never closed. Use context managers or explicitly call conn.close().', fix: '# Use context manager:\nwith sqlite3.connect("users.db") as conn:\n    cursor = conn.cursor()\n    ...' },
+        { severity: 'medium', type: 'Code Smell: Duplicate Code', line: 'Lines 10, 36', message: 'Database connection logic is duplicated across get_user() and add_user(). Extract into a helper function.', fix: 'def get_connection():\n    return sqlite3.connect("users.db")\n\ndef get_user(username):\n    with get_connection() as conn: ...' },
+        { severity: 'low', type: 'Code Smell: Magic String', line: 'Line 9', message: '"users.db" is repeated as a magic string. Define it as a constant at the module level.', fix: 'DB_PATH = "users.db"\n\n# Then use:\nconn = sqlite3.connect(DB_PATH)' },
+        { severity: 'info', type: 'Style: Missing Docstrings', line: 'All functions', message: 'None of the functions have docstrings. Add Google-style or NumPy-style docstrings for maintainability.', fix: 'def get_user(username: str) -> list:\n    """Fetch a user record by username.\n\n    Args:\n        username: The username to search for.\n    Returns:\n        List of matching user rows.\n    """' }
+      ],
+      js: [
+        { severity: 'critical', type: 'Security: XSS Vulnerability', line: 'Line 13', message: "User input (username) is directly interpolated into HTML without escaping. Attackers can inject malicious scripts.", fix: "const html = '<h1>Welcome ' + escapeHtml(username) + '</h1>';\n// Helper:\nfunction escapeHtml(str) {\n  return str.replace(/[&<>\"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#39;'}[c]));\n}" },
+        { severity: 'critical', type: 'Security: Hardcoded API Key', line: 'Lines 5–6', message: 'API keys and JWT secrets hardcoded in code. These should be loaded from environment variables.', fix: "const API_KEY = process.env.API_KEY;\nconst JWT_SECRET = process.env.JWT_SECRET;" },
+        { severity: 'critical', type: 'Security: eval() Usage', line: 'Line 25', message: 'eval() executes arbitrary code. If any user-controlled data reaches it, this is a Remote Code Execution (RCE) vulnerability.', fix: '// Avoid eval(); use a safe math library:\nconst { evaluate } = require("mathjs");\nfunction compute(expr) { return evaluate(expr); }' },
+        { severity: 'high', type: 'Bug: Infinite Loop Risk', line: 'Lines 28–32', message: 'While loop has no exit condition if the ID is not found, causing the process to hang indefinitely.', fix: "function findUser(users, id) {\n  return users.find(u => u.id === id) ?? null;\n}" },
+        { severity: 'high', type: 'Security: SQL Injection', line: 'Line 21', message: 'User query parameter interpolated directly into SQL string without sanitization or parameterization.', fix: 'db.query("SELECT * FROM users WHERE id = ?", [id], (err, result) => { ... });' },
+        { severity: 'medium', type: 'Bug: Unhandled Error', line: 'Line 22', message: 'throw err inside a callback will crash the Node.js process. Use next(err) in Express or respond with a 500 status.', fix: "if (err) return res.status(500).json({ error: 'Database error' });" }
+      ],
+      sql: [
+        { severity: 'critical', type: 'Security: PII Without Encryption', line: 'Lines 19–20', message: 'credit_card and ssn stored in plaintext. This violates PCI-DSS and GDPR. Encrypt at rest using column-level encryption.', fix: '-- Use encrypted columns or application-level encryption\ncredit_card_hash VARCHAR(64),  -- store only last 4 digits or hash\nssn_encrypted VARBINARY(256)  -- AES-256 encrypted' },
+        { severity: 'critical', type: 'Security: Plaintext Password', line: 'Line 14', message: 'Passwords must never be stored in plaintext. Use bcrypt, scrypt, or Argon2 hashing.', fix: "-- Hash at application layer before INSERT:\n-- Python: hashed_pwd = bcrypt.hashpw(password.encode(), bcrypt.gensalt())" },
+        { severity: 'high', type: 'Bug: UPDATE Without WHERE', line: 'Line 8', message: 'Missing WHERE clause will update the status column for EVERY row in the users table.', fix: "UPDATE users SET status = 'active' WHERE last_login > NOW() - INTERVAL 30 DAY;" },
+        { severity: 'high', type: 'Bug: DELETE Without WHERE', line: 'Line 11', message: 'Missing WHERE clause will delete ALL rows in the sessions table — complete data loss.', fix: 'DELETE FROM sessions WHERE expires_at < NOW();' },
+        { severity: 'medium', type: 'Performance: SELECT *', line: 'Lines 4, 7', message: 'SELECT * retrieves all columns including large BLOBs. Specify only needed columns to reduce data transfer.', fix: 'SELECT id, email, created_at FROM customers;' },
+        { severity: 'low', type: 'Performance: Missing LIMIT', line: 'Line 17', message: 'Query on audit_logs with no LIMIT can return millions of rows, causing memory issues.', fix: 'SELECT id, action, logged_at FROM audit_logs ORDER BY created_at DESC LIMIT 100;' }
+      ]
+    };
+
+    function runAnalysis() {
+      const btn = document.getElementById('scanBtn');
+      const code = document.getElementById('codeInput').value.trim();
+      const fname = document.getElementById('editorFilename').textContent;
+      if (!code) { alert('Please paste some code first!'); return; }
+
+      btn.disabled = true;
+      document.getElementById('scanText').textContent = 'Analyzing...';
+      document.getElementById('scanIcon').innerHTML = '<div class="loading-spinner" style="width:16px;height:16px;border-width:2px;"></div>';
+      document.getElementById('analysisResults').innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted);">🔍 Scanning for vulnerabilities...</div>';
+
+      setTimeout(() => {
+        let issues;
+        if (fname.endsWith('.py')) issues = issueDB.python;
+        else if (fname.endsWith('.js')) issues = issueDB.js;
+        else if (fname.endsWith('.sql')) issues = issueDB.sql;
+        else issues = issueDB.python;
+
+        const counts = { critical:0, high:0, medium:0, low:0, info:0 };
+        issues.forEach(i => counts[i.severity]++);
+
+        const totalWeight = counts.critical*10 + counts.high*6 + counts.medium*3 + counts.low*1;
+        const score = Math.max(0, 100 - totalWeight * 2);
+        const scoreColor = score >= 80 ? 'var(--emerald-light)' : score >= 60 ? 'var(--amber-light)' : 'var(--rose-light)';
+
+        let html = `
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;">
+            <div>
+              <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:4px;">Quality Score</div>
+              <div style="font-family:var(--font-primary);font-size:2.5rem;font-weight:800;color:${scoreColor};">${score}<span style="font-size:1rem;opacity:0.7">/100</span></div>
+            </div>
+            <div class="severity-summary">
+              ${counts.critical ? `<div class="sev-pill critical">🔴 ${counts.critical} Critical</div>` : ''}
+              ${counts.high ? `<div class="sev-pill high">🟠 ${counts.high} High</div>` : ''}
+              ${counts.medium ? `<div class="sev-pill medium">🟣 ${counts.medium} Medium</div>` : ''}
+              ${counts.low ? `<div class="sev-pill low">🔵 ${counts.low} Low</div>` : ''}
+              ${counts.info ? `<div class="sev-pill info">🟢 ${counts.info} Info</div>` : ''}
+            </div>
+          </div>
+        `;
+
+        issues.forEach((issue, idx) => {
+          html += `
+            <div class="result-item severity-${issue.severity}" style="animation-delay:${idx * 0.08}s">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:60px;">
+                <div class="result-severity-badge ${issue.severity}">${issue.severity}</div>
+                <div class="issue-line">${issue.line}</div>
+              </div>
+              <div class="result-content">
+                <div class="result-type">${issue.type}</div>
+                <div class="result-message">${issue.message}</div>
+                <div class="fix-code">✅ Fix: ${issue.fix}</div>
+              </div>
+            </div>
+          `;
+        });
+
+        document.getElementById('analysisResults').innerHTML = html;
+        btn.disabled = false;
+        document.getElementById('scanText').textContent = 'Analyze Code';
+        document.getElementById('scanIcon').textContent = '⚡';
+      }, 1800);
+    }
+  </script>
+</body>
+</html>
