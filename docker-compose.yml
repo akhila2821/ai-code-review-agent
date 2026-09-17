@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+  ai-reviewer:
+    build: .
+    container_name: ai-code-review-agent
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - APP_ENV=production
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8000/health').raise_for_status()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    volumes:
+      # Mount .env separately so you don't have to rebuild for config changes
+      - ./.env:/app/.env:ro
+
+  # Optional: ngrok tunnel for local webhook testing
+  # ngrok:
+  #   image: ngrok/ngrok:latest
+  #   restart: unless-stopped
+  #   command: http ai-reviewer:8000
+  #   environment:
+  #     - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+  #   ports:
+  #     - "4040:4040"
+  #   depends_on:
+  #     - ai-reviewer
