@@ -1,0 +1,20 @@
+{
+  "name": "codeathon",
+  "version": "1.0.0",
+  "description": "AI Code Review & Vulnerability Detection Agent — Codeathon prototype.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.4",
+    "express": "^5.2.1",
+    "openai": "^7.23.0"
+  }
+}

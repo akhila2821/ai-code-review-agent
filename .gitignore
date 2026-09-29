@@ -1,0 +1,22 @@
+# ── Secrets & environment ─────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── Dependencies ──────────────────────────────────────
+node_modules/
+
+# ── Logs ─────────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+
+# ── OS / editor junk ─────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ── Build output (if added later) ────────────────────
+dist/
+build/
